@@ -7,7 +7,6 @@ function PromisePiper(sequence){
   var rec = [];
 
   var result = function(data, context){
-    if(!PromisePiper.prod) rec.push([stringify(data), stringify(context)])
     var chain = [].concat(sequence);
     chain = chain.map(bindTo(context).bindIt.bind(result));
     return doit(chain, data);
@@ -97,40 +96,11 @@ function bindTo(that){
       var result = this;
       return handlers.map(function(argFunc){
         //TODO: maybe it should be optimized for prod
-        if(!PromisePiper.prod) {
-          var newArgFunc = function(data){
-            try{
-              var newFunc = argFunc.call(this, data, that);
-            } catch(e) {
-              var parsed = parse(e);
-              var rec = result._getRec();
-              var msgObject = {
-                pipeArgs:{
-                  data: rec[rec.length - 1][0],
-                  context: rec[rec.length - 1][1]
-                },
-                name: parsed[0].name,
-                filepath: parsed[0].filepath,
-                lineNumber: parsed[0].lineNumber,
-                columnNumber: parsed[0].columnNumber,
-                data: data,
-                context: that,
-                message: e.message,
-                parsedStack: parsed,
-                originalError: e,
-                originalFunction: argFunc.toString()
-              }
-              console.error("PromisePipe Error: ");
-              console.error(msgObject);
-              Promise.reject(msgObject);
-            }
-            return newFunc;
-          }
-        } else {
-          var newArgFunc = function(data){
-            return argFunc.call(this, data, that);
-          }
+       
+        var newArgFunc = function(data){
+          return argFunc.call(this, data, that);
         }
+      
         Object.keys(argFunc).reduce(function(funObj, key){
           funObj[key] = argFunc[key]
           return funObj;
