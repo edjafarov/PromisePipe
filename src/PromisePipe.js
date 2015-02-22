@@ -83,9 +83,13 @@ PromisePiper.use = function(name, transformation, isCatch){
   PromisePiper.transformations[name].isCatch = isCatch;
 }
 
+// build a chain of promises
 function doit(sequence, data){
   return sequence.reduce(function(doWork, funcArr){
-    if(funcArr[0] && funcArr[0].isCatch) return doWork.catch.apply(doWork, funcArr); //do catch or
+    // if next promise is catch
+    if(funcArr[0] && funcArr[0].isCatch) {
+      return doWork.catch.apply(doWork, funcArr); //do catch
+    }
     return doWork.then.apply(doWork, funcArr);
   }, Promise.resolve(data))
 }

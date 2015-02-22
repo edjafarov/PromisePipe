@@ -61,6 +61,59 @@ describe('PromisePipe with 3 functions if running', function(){
 
 });
 
+
+describe('PromisePipe error handling', function(){
+	var context = {};
+	var data1 = 1;
+	var data2 = 2;
+	var data3 = 3;
+	var fn1 = sinon.stub();
+	var fn2 = sinon.stub();
+	var fn3 = sinon.stub();
+	var finish = sinon.spy();
+	//if runninng with data1
+	fn1.withArgs(data1, context).returns(data2);
+	fn2.withArgs(data2, context).returns(data3);
+	fn3.withArgs(data3, context).returns(data1);
+
+	var pipe = PromisePipe()		
+			.then(function(data, context){
+				return new Promise(function(resolve, reject){
+					process.nextTick(function(){
+						reject(fn1(data, context));
+					});
+				})
+			})
+			.then(function(data, context){
+				return new Promise(function(resolve, reject){
+					process.nextTick(function(){
+						resolve(fn2(data, context));
+					});
+				})
+			})
+			.catch(fn3);
+	
+	before(function(done){
+		pipe(data1, context).then(finish);
+		done()
+	})
+	
+	it('should pass a chain of items once', function(){
+		sinon.assert.calledOnce(fn1);
+		sinon.assert.calledWithExactly(fn1, data1, context);
+		sinon.assert.notCalled(fn2);
+		
+		sinon.assert.calledOnce(fn3);
+		sinon.assert.calledWithExactly(fn3, data2, context);
+		
+		sinon.assert.calledOnce(finish);
+		sinon.assert.calledWithExactly(finish, undefined);
+
+	});
+
+
+});
+
 describe('PromisePipe with 3 functions if running async', function(){
 	var context = {};
 	var data1 = 1;
