@@ -3,7 +3,7 @@ var sinon = require('sinon');
 var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
 
-describe('PromisePipe with 3 functions if running', function(){
+describe('PromisePipe with 3 functions when called', function(){
 	var context = {};
 	var data1 = 1;
 	var data2 = 2;
@@ -30,13 +30,19 @@ describe('PromisePipe with 3 functions if running', function(){
 		pipe(data1, context).then(finish);
 		done()
 	})
-	it('should pass a chain of items once', function(){
+	it('should pass first function', function(){
 		sinon.assert.calledOnce(fn1);
 		sinon.assert.calledWithExactly(fn1, data1, context);
+	});
+	it('should pass second function', function(){
 		sinon.assert.calledOnce(fn2);
 		sinon.assert.calledWithExactly(fn2, data2, context);
+	})
+	it('should pass third function', function(){
 		sinon.assert.calledOnce(fn3);
 		sinon.assert.calledWithExactly(fn3, data3, context);
+	});
+	it('should end with final function', function(){
 		sinon.assert.calledOnce(finish);
 		sinon.assert.calledWithExactly(finish, data1);
 	});
@@ -50,11 +56,13 @@ describe('PromisePipe with 3 functions if running', function(){
 			sinon.assert.calledTwice(fn1);
 			sinon.assert.calledTwice(fn2);
 			sinon.assert.calledTwice(fn3);
-			sinon.assert.calledOnce(finish);
-			sinon.assert.calledOnce(finish1);
 			sinon.assert.calledWithExactly(fn1, data2, context);
 			sinon.assert.calledWithExactly(fn2, data3, context);
 			sinon.assert.calledWithExactly(fn3, data1, context);
+		})			
+		it('should pass its own finish1 function', function(){
+			sinon.assert.calledOnce(finish);
+			sinon.assert.calledOnce(finish1);
 			sinon.assert.calledWithExactly(finish1, data2);
 		})
 	})
@@ -97,11 +105,14 @@ describe('PromisePipe error handling', function(){
 		pipe(data1, context).then(finish);
 		done()
 	})
-	
-	it('should pass a chain of items once', function(){
+
+	it('should not call fn2 after fn1 rejected', function(){
+		sinon.assert.notCalled(fn2);
+	})
+
+	it('should go fn1, rejected and get to fn3 rightaway to handle error with catch', function(){
 		sinon.assert.calledOnce(fn1);
 		sinon.assert.calledWithExactly(fn1, data1, context);
-		sinon.assert.notCalled(fn2);
 		
 		sinon.assert.calledOnce(fn3);
 		sinon.assert.calledWithExactly(fn3, data2, context);
@@ -212,7 +223,7 @@ describe('PromisePipe', function(){
 		})
 	})
 
-	describe('can be extended', function(){
+	describe('can be extended with methods', function(){
 		var fn1 = sinon.stub();
 		var fn2 = sinon.stub();
 		var finish = sinon.spy();
@@ -239,7 +250,7 @@ describe('PromisePipe', function(){
 			sinon.assert.calledWithExactly(fn2, data3, context);
 		})
 	})
-	describe('can be extended', function(){
+	describe('can be extended with hash of methods', function(){
 		var fn1 = sinon.stub();
 		var fn2 = sinon.stub();
 		var finish = sinon.spy();
