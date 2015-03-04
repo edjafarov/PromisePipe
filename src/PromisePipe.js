@@ -41,40 +41,41 @@ function PromisePiper(sequence){
   }  
 
   result = Object.keys(PromisePiper.transformations).reduce(function(thePipe, name){
-    if(typeof(PromisePiper.transformations[name]) == 'object'){
-      var customApi = PromisePiper.transformations[name];
-      thePipe[name] = Object.keys(customApi).reduce(function(api, apiname){
-        api[apiname] = function(){
-          var args = [].slice.call(arguments);
-          var resFun = function(data, context){
-            var argumentsToPassInside = [data, context].concat(args);
-            return customApi[apiname].apply(result, argumentsToPassInside);
-          };
-          resFun.isCatch = customApi[apiname].isCatch;
-          sequence.push([resFun]);
-          return result;
-        }
-        return api;
-      }, {});
-
+    var customApi = PromisePiper.transformations[name];
+    if(typeof(customApi) == 'object'){
+      thePipe[name] = wrapObjectPromise(customApi, sequence, result);
     } else {
-      thePipe[name] = function(){
-        var args = [].slice.call(arguments);
-        var resFun = function(data, context){
-          var argumentsToPassInside = [data, context].concat(args);
-          return PromisePiper.transformations[name].apply(result, argumentsToPassInside);
-        };
-        resFun.isCatch = PromisePiper.transformations[name].isCatch;
-        sequence.push([resFun]);
-        return result;
-      }
-      
+      thePipe[name] = wrapPromise(customApi, sequence, result);
     }
     return thePipe;
   }, result);
 
   return result;  
 }
+function wrapObjectPromise(customApi, sequence, result){
+  return Object.keys(customApi).reduce(function(api, apiname){
+    if(typeof(customApi[apiname]) == 'object'){
+      api[apiname] = wrapObjectPromise(customApi[apiname], sequence, result);
+    } else {
+      api[apiname] = wrapPromise(customApi[apiname], sequence, result);
+    }
+    return api;
+  }, {});
+}
+
+function wrapPromise(transObject, sequence, result){
+  return function(){
+    var args = [].slice.call(arguments);
+    var resFun = function(data, context){
+      var argumentsToPassInside = [data, context].concat(args);
+      return transObject.apply(result, argumentsToPassInside);
+    };
+    resFun.isCatch = transObject.isCatch;
+    sequence.push([resFun]);
+    return result;
+  }
+}
+
 
 PromisePiper.transformations = {};
 

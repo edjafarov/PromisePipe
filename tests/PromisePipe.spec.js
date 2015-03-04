@@ -257,15 +257,20 @@ describe('PromisePipe', function(){
 		var fn3 = sinon.stub();		
 		var inner1 = sinon.stub();
 		var inner2 = sinon.stub();
+		var inner3 = sinon.stub();
 
 		fn1.withArgs(data1, context).returns(data2);
 		fn2.withArgs(data2, context).returns(data3);
 		inner1.withArgs(data2, context, data4).returns(data2);
 		inner2.withArgs(data2, context, data5).returns(data2);
+		inner3.withArgs(data2, context, data1).returns(data2);
 
 		PromisePipe.use('withMethod', {
 			method1: inner1,
-			method2: inner2
+			method2: inner2,
+			method3: {
+				innerMethod1: inner3
+			}
 		});
 
 		var customPipe1 = PromisePipe()
@@ -276,21 +281,29 @@ describe('PromisePipe', function(){
 		var customPipe2 = PromisePipe()
 			.then(fn1)
 			.withMethod.method2(data5)
-			.then(fn2)		
+			.then(fn2)	
+
+		var customPipe3 = PromisePipe()
+			.then(fn1)
+			.withMethod.method3.innerMethod1(data1)
+			.then(fn2)					
 
 		before(function(){
 			customPipe1(data1, context).then(finish);
 			customPipe2(data1, context).then(finish);
+			customPipe3(data1, context).then(finish);
 		})
 
 		it('should pass functions', function(){
-			sinon.assert.calledTwice(fn1);
+			sinon.assert.calledThrice(fn1);
 			sinon.assert.calledWithExactly(fn1, data1, context);
 			sinon.assert.calledOnce(inner1);
 			sinon.assert.calledWithExactly(inner1, data2, context, data4);
 			sinon.assert.calledOnce(inner2);
 			sinon.assert.calledWithExactly(inner2, data2, context, data5);
-			sinon.assert.calledTwice(fn2);
+			sinon.assert.calledOnce(inner3);
+			sinon.assert.calledWithExactly(inner3, data2, context, data1);			
+			sinon.assert.calledThrice(fn2);
 			sinon.assert.calledWithExactly(fn2, data2, context);
 		})
 	})	
