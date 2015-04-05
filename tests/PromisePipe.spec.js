@@ -1,4 +1,4 @@
-var PromisePipe = require('../src/PromisePipe');
+var PromisePipe = require('../src/PromisePipe')();
 var sinon = require('sinon');
 var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
@@ -368,4 +368,6 @@ describe('PromisePipe composition 2 functions, and 2nd will be separate PromisPi
 		})
 	})
 });
-
+/*
+TODO: test errohandling
+*/
