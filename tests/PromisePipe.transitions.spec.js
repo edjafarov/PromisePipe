@@ -61,11 +61,13 @@ describe('PromisePipe when comes to chains from other env', function(){
 		before(function(done){
 
 			PromisePipe.envTransition('client', 'server', function(message){
-				PromisePipeServer.execTransitionMessage(message).then(function(data){
-					message.data = data;
-					PromisePipe.execTransitionMessage(message);
+				var innerMsg = JSON.parse(JSON.stringify(message));
+				PromisePipeServer.execTransitionMessage(innerMsg).then(function(data){
+					var ininnerMsg = JSON.parse(JSON.stringify(innerMsg));
+					ininnerMsg.data = data;
+					PromisePipe.execTransitionMessage(ininnerMsg);
 				})
-			return PromisePipe.promiseMessage(message);
+				return PromisePipe.promiseMessage(message);
 			})
 			pipe(data1, context).then(finish);
 			done()
