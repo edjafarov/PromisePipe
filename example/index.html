@@ -1,0 +1,31 @@
+<html>
+<head>
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+	<h2>LOOK INTO CONSOLE</h2>
+	<button onclick="pipe(2).then()">RUN</button>
+<script type="text/javascript" src="/bundle.js"></script>
+<script type="text/javascript">
+window.pipe = require('pipe');
+var PromisePipe = require('PromisePipe');
+
+var socket = io.connect('http://localhost:3000');
+socket.on('messageToClient', function (message) {
+  PromisePipe.execTransitionMessage(message);
+});
+
+
+PromisePipe.envTransition('client', 'server', function(message){
+	socket.emit('messageToServer', message);
+	return PromisePipe.promiseMessage(message);
+});
+
+function printResult(data){
+	console.log("RESULT CLIENT: " + data);
+}
+
+
+</script>
+</body>
+</html>
