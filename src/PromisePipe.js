@@ -204,7 +204,7 @@ function PromisePiperFactory(){
         var lastChain = sequence.map(function(el){
           return el._env;
         }).indexOf(PromisePiper.env, firstChainN );
-
+        lastChain = (lastChain == -1)?(sequence.length - 1):lastChain;
         ctx._passChains = sequence.map(function(el){
           return el._id
         }).slice(firstChainN+1, lastChain);

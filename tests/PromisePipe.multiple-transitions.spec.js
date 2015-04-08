@@ -149,6 +149,7 @@ describe('PromisePipe when comes to chains from other env', function(){
 				sinon.assert.calledThrice(fn3);
 				sinon.assert.calledThrice(fn4);
 				sinon.assert.calledThrice(fn5);
+				sinon.assert.calledThrice(finish);
 				sinon.assert.calledWithExactly(finish, data1);
 		})		
 	})	

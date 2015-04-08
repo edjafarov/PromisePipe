@@ -1340,7 +1340,8 @@ function PromisePiperFactory(){
       
       //get into other env first time
       if(ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id))) {
-    
+        console.log(ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id)));
+        console.log(ctx._env,funcArr._env , ctx._passChains, (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id)), funcArr._id);
         var firstChainN = sequence.map(function(el){
           return el._id
         }).indexOf(funcArr._id);
@@ -1348,12 +1349,11 @@ function PromisePiperFactory(){
         var lastChain = sequence.map(function(el){
           return el._env;
         }).indexOf(PromisePiper.env, firstChainN );
-
+        lastChain = (lastChain == -1)?(sequence.length - 1):lastChain;
         ctx._passChains = sequence.map(function(el){
           return el._id
         }).slice(firstChainN+1, lastChain);
         // If there is a transition
-      
         
         if(PromisePiper.envTransitions[ctx._env] && PromisePiper.envTransitions[ctx._env][funcArr._env]){
           var newArgFunc = function(data){
@@ -1367,6 +1367,7 @@ function PromisePiperFactory(){
         }
       //got next chain from other env
       } else if(ctx._env !== funcArr._env && ctx._passChains && !!~ctx._passChains.indexOf(funcArr._id)) {
+        console.log(funcArr._id, "pass");
         var newArgFunc = function(data){
           return data;
         }
@@ -1478,10 +1479,6 @@ pipe
 module.exports = PromisePiperFactory;
 },{"es6-promise":2,"json-stringify-safe":3,"parse-stack":4}],"PromisePipe":[function(require,module,exports){
 var PromisePipe = require('promise-pipe')();
-
-
-
-
 module.exports = PromisePipe;
 },{"promise-pipe":5}],"pipe":[function(require,module,exports){
 var PromisePipe = require('./PromisePipe');
@@ -1498,38 +1495,40 @@ if(typeof(window) !== 'object'){
 module.exports = PromisePipe()
 	.then(plus(5))
 	.then(minus(6))
-	.then(multipy(2))
-	.then(pow(3))
-	.then(plus(2));
+	.then(doOnServer(multipy(2)))
+	.then(doOnServer(pow(3)))
+	.then(doOnServer(plus(2)))
+	.then(doOnServer(plus(2)));
 
+
+	function doOnServer(fn){
+		fn._env = 'server';
+		return fn
+	}
 
 	function plus(a){
 		return function(data){
-			console.log("PLUS on " + ENV);
+			console.log("PLUS on " + ENV, data+a);
 			return data + a;
 		}
 	}
 
 	function minus(a){
 		return function(data){
-			console.log("MINUS on " + ENV);
+			console.log("MINUS on " + ENV, data - a);
 			return data - a;
 		}
 	}	
 	function multipy(a){
-		var result = function(data){
-			console.log("MULTIPLY on " + ENV);
+		return function(data){
+			console.log("MULTIPLY on " + ENV,data * a);
 			return data * a;
 		}
-		result._env = "server";
-		return result;
 	}	
 	function pow(a){
-		var result = function(data){
-			console.log("POW on " + ENV);
+		return function(data){
+			console.log("POW on " + ENV,Math.pow(data, a));
 			return Math.pow(data, a);
 		}
-		result._env = "server";
-		return result;
 	}	
 },{"./PromisePipe":"PromisePipe"}]},{},[]);

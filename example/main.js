@@ -12,37 +12,39 @@ if(typeof(window) !== 'object'){
 module.exports = PromisePipe()
 	.then(plus(5))
 	.then(minus(6))
-	.then(multipy(2))
-	.then(pow(3))
-	.then(plus(2));
+	.then(doOnServer(multipy(2)))
+	.then(doOnServer(pow(3)))
+	.then(doOnServer(plus(2)))
+	.then(doOnServer(plus(2)));
 
+
+	function doOnServer(fn){
+		fn._env = 'server';
+		return fn
+	}
 
 	function plus(a){
 		return function(data){
-			console.log("PLUS on " + ENV);
+			console.log("PLUS on " + ENV, data+a);
 			return data + a;
 		}
 	}
 
 	function minus(a){
 		return function(data){
-			console.log("MINUS on " + ENV);
+			console.log("MINUS on " + ENV, data - a);
 			return data - a;
 		}
 	}	
 	function multipy(a){
-		var result = function(data){
-			console.log("MULTIPLY on " + ENV);
+		return function(data){
+			console.log("MULTIPLY on " + ENV,data * a);
 			return data * a;
 		}
-		result._env = "server";
-		return result;
 	}	
 	function pow(a){
-		var result = function(data){
-			console.log("POW on " + ENV);
+		return function(data){
+			console.log("POW on " + ENV,Math.pow(data, a));
 			return Math.pow(data, a);
 		}
-		result._env = "server";
-		return result;
 	}	
