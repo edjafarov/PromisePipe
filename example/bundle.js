@@ -1155,10 +1155,29 @@ function PromisePiperFactory(){
     var result = function(data, context){
       context = context || {};
 
-      context._pipecallId = Math.ceil(Math.random()*Math.pow(10,16));
-      context._env = PromisePiper.env;
+      Object.defineProperty(context, '_pipecallId', {
+        configurable: true,
+        enumerable: false,
+        writable: false,
+        value: Math.ceil(Math.random()*Math.pow(10,16))
+      })
 
-      var chain = [].concat(sequence);
+      Object.defineProperty(context, '_env', {
+        configurable: true,
+        enumerable: false,
+        writable: false,
+        value: PromisePiper.env
+      })   
+
+      function cleanup(data, context){
+        delete context._pipecallId;
+        delete context._env;
+        return data;
+      }
+      var clean = [cleanup];
+      clean._env = PromisePiper.env;
+
+      var chain = [].concat(sequence, [clean]);
       chain = chain.map(bindTo(context).bindIt.bind(result));
       return doit(chain, data, result, context);
     }
@@ -1291,7 +1310,8 @@ function PromisePiperFactory(){
     return new Promise(function(resolve, reject){
       PromisePiper.messageResolvers[message.call] = {
         resolve: resolve, 
-        reject: reject
+        reject: reject,
+        context: message.context
       };
     })
   }
@@ -1299,6 +1319,13 @@ function PromisePiperFactory(){
   PromisePiper.execTransitionMessage = function execTransitionMessage(message){
 
     if(PromisePiper.messageResolvers[message.call]){
+      //inherit from coming message context
+      Object.keys(message.context).reduce(function(ctx, name){
+        ctx[name] = message.context[name];
+        return ctx;
+      }, PromisePiper.messageResolvers[message.call].context);
+      
+
       PromisePiper.messageResolvers[message.call].resolve(message.data);
       delete PromisePiper.messageResolvers[message.call];
       return {then:function(){}};
@@ -1340,8 +1367,7 @@ function PromisePiperFactory(){
       
       //get into other env first time
       if(ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id))) {
-        console.log(ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id)));
-        console.log(ctx._env,funcArr._env , ctx._passChains, (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id)), funcArr._id);
+    
         var firstChainN = sequence.map(function(el){
           return el._id
         }).indexOf(funcArr._id);
@@ -1350,10 +1376,14 @@ function PromisePiperFactory(){
           return el._env;
         }).indexOf(PromisePiper.env, firstChainN );
         lastChain = (lastChain == -1)?(sequence.length - 1):lastChain;
+
+
+
         ctx._passChains = sequence.map(function(el){
           return el._id
         }).slice(firstChainN+1, lastChain);
         // If there is a transition
+      
         
         if(PromisePiper.envTransitions[ctx._env] && PromisePiper.envTransitions[ctx._env][funcArr._env]){
           var newArgFunc = function(data){
@@ -1367,7 +1397,6 @@ function PromisePiperFactory(){
         }
       //got next chain from other env
       } else if(ctx._env !== funcArr._env && ctx._passChains && !!~ctx._passChains.indexOf(funcArr._id)) {
-        console.log(funcArr._id, "pass");
         var newArgFunc = function(data){
           return data;
         }
@@ -1380,7 +1409,7 @@ function PromisePiperFactory(){
       
 
       return doWork.then.apply(doWork, funcArr);
-    }, Promise.resolve(data))
+    }, Promise.resolve(data));
   }
 
 
@@ -1412,7 +1441,6 @@ function PromisePiperFactory(){
       }
     }
   }
-
 
 
   /* //identify ACTION
@@ -1493,12 +1521,13 @@ if(typeof(window) !== 'object'){
 
 
 module.exports = PromisePipe()
+	.then(prepare)
 	.then(plus(5))
 	.then(minus(6))
 	.then(doOnServer(multipy(2)))
 	.then(doOnServer(pow(3)))
 	.then(doOnServer(plus(2)))
-	.then(doOnServer(plus(2)));
+	.then(plus(2));
 
 
 	function doOnServer(fn){
@@ -1506,28 +1535,39 @@ module.exports = PromisePipe()
 		return fn
 	}
 
+	
+	function prepare(data, context){
+		if(!context.stack) context.stack = [];
+		return data;
+
+	}
+
 	function plus(a){
-		return function(data){
-			console.log("PLUS on " + ENV, data+a);
+		return function(data, context){
+			console.log("PLUS on " + ENV, data+a, context);
+			context.stack.push("PLUS on " + ENV);
 			return data + a;
 		}
 	}
 
 	function minus(a){
-		return function(data){
-			console.log("MINUS on " + ENV, data - a);
+		return function(data, context){
+			console.log("MINUS on " + ENV, data - a, context);
+			context.stack.push("MINUS on " + ENV);
 			return data - a;
 		}
 	}	
 	function multipy(a){
-		return function(data){
-			console.log("MULTIPLY on " + ENV,data * a);
+		return function(data, context){
+			console.log("MULTIPLY on " + ENV,data * a, context);
+			context.stack.push("MULTIPLY on " + ENV);
 			return data * a;
 		}
 	}	
 	function pow(a){
-		return function(data){
-			console.log("POW on " + ENV,Math.pow(data, a));
+		return function(data, context){
+			console.log("POW on " + ENV,Math.pow(data, a), context);
+			context.stack.push("POW on " + ENV);
 			return Math.pow(data, a);
 		}
 	}	

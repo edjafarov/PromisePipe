@@ -1,6 +1,4 @@
 var Promise = require('es6-promise').Promise;
-var parse = require("parse-stack");
-var stringify = require("json-stringify-safe");
 
 
 function PromisePiperFactory(){
@@ -11,10 +9,29 @@ function PromisePiperFactory(){
     var result = function(data, context){
       context = context || {};
 
-      context._pipecallId = Math.ceil(Math.random()*Math.pow(10,16));
-      context._env = PromisePiper.env;
+      Object.defineProperty(context, '_pipecallId', {
+        configurable: true,
+        enumerable: false,
+        writable: false,
+        value: Math.ceil(Math.random()*Math.pow(10,16))
+      })
 
-      var chain = [].concat(sequence);
+      Object.defineProperty(context, '_env', {
+        configurable: true,
+        enumerable: false,
+        writable: false,
+        value: PromisePiper.env
+      })   
+
+      function cleanup(data, context){
+        delete context._pipecallId;
+        delete context._env;
+        return data;
+      }
+      var clean = [cleanup];
+      clean._env = PromisePiper.env;
+
+      var chain = [].concat(sequence, [clean]);
       chain = chain.map(bindTo(context).bindIt.bind(result));
       return doit(chain, data, result, context);
     }
@@ -147,7 +164,8 @@ function PromisePiperFactory(){
     return new Promise(function(resolve, reject){
       PromisePiper.messageResolvers[message.call] = {
         resolve: resolve, 
-        reject: reject
+        reject: reject,
+        context: message.context
       };
     })
   }
@@ -155,6 +173,13 @@ function PromisePiperFactory(){
   PromisePiper.execTransitionMessage = function execTransitionMessage(message){
 
     if(PromisePiper.messageResolvers[message.call]){
+      //inherit from coming message context
+      Object.keys(message.context).reduce(function(ctx, name){
+        ctx[name] = message.context[name];
+        return ctx;
+      }, PromisePiper.messageResolvers[message.call].context);
+      
+
       PromisePiper.messageResolvers[message.call].resolve(message.data);
       delete PromisePiper.messageResolvers[message.call];
       return {then:function(){}};
@@ -205,6 +230,9 @@ function PromisePiperFactory(){
           return el._env;
         }).indexOf(PromisePiper.env, firstChainN );
         lastChain = (lastChain == -1)?(sequence.length - 1):lastChain;
+
+
+
         ctx._passChains = sequence.map(function(el){
           return el._id
         }).slice(firstChainN+1, lastChain);
@@ -235,7 +263,7 @@ function PromisePiperFactory(){
       
 
       return doWork.then.apply(doWork, funcArr);
-    }, Promise.resolve(data))
+    }, Promise.resolve(data));
   }
 
 
@@ -267,7 +295,6 @@ function PromisePiperFactory(){
       }
     }
   }
-
 
 
   /* //identify ACTION

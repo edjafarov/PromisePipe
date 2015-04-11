@@ -1,6 +1,6 @@
 {
   "name": "promise-pipe",
-  "version": "0.0.5",
+  "version": "0.0.9",
   "description": "##install",
   "main": "src/PromisePipe.js",
   "scripts": {
@@ -17,9 +17,7 @@
   },
   "homepage": "https://github.com/edjafarov/PromisePipe",
   "dependencies": {
-    "es6-promise": "~2.0.1",
-    "parse-stack": "~0.1.3",
-    "json-stringify-safe": "~5.0.0"
+    "es6-promise": "~2.0.1"
   },
   "devDependencies": {
     "chai": "~2.0.0",
