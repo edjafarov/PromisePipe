@@ -130,20 +130,7 @@ function PromisePiperFactory(){
     if(!PromisePiper.envTransitions[from]) PromisePiper.envTransitions[from] = {};
     PromisePiper.envTransitions[from][to] = fn;
   } 
-  /*
-  if next promise is for other env then
-  I use transition
-
-  the promise becomes
-  new Promise(function(resolve, reject){
-    //ithPP:ithStepc:CallID/->
-    socketOn("/ithPP:ithStep/CallID", resolve/reject)
-    socket.emit("");
-  })
-  PASS.PASS.PASS
-  clientk
-  take data, transform data, send 
-  */
+  
 
   PromisePiper.transformations = {};
 
@@ -238,7 +225,6 @@ function PromisePiperFactory(){
         }).slice(firstChainN+1, lastChain);
         // If there is a transition
       
-        
         if(PromisePiper.envTransitions[ctx._env] && PromisePiper.envTransitions[ctx._env][funcArr._env]){
           var newArgFunc = function(data){
             var msg = PromisePiper.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[lastChain]._id, ctx._pipecallId);
@@ -297,54 +283,7 @@ function PromisePiperFactory(){
   }
 
 
-  /* //identify ACTION
-  PromisePipe().doitWith("id").read("/a/b");
-  if cli for server -> then(sendToServer)
-  .then(pass).then(pass)
-  ser for client .then(resp)
-  *1/
-  message = {
-    context:
-    data:
 
-  }
-  PromisePipe().execTransitionMessage(message);
-  */
-
-
-
-  /*
-{
-  data
-  context
-  call
-  chain [start, end]
-  pipe
-}
-
-[c].[c].[s].[s].[d].[d].[c]
-
-[c].[c].[s].[s].[d].[s].[c]
-
-call
-chain
-pipe
-
-1 do
-2 do
-3 
-  remember call, remember context, send over chain where it should be back [7]
-  replace all to next C with free pass chains
-  call transition to send message c to s
-
-  pipeExec receives data/call/where it should start and end
-  slices down the part, on then - calls transition s to c
-4
-5 
-  remember call, remember context, send over chain where it should be back [6]
-6
-
-*/
 
 
   var counter = 1234567890987;
@@ -358,4 +297,16 @@ pipe
   return PromisePiper;
 }
 
+
+
 module.exports = PromisePiperFactory;
+
+
+[ ] TODO: create urtility to make easier env specific 
+    context augumenting.
+    The problem is that on server we should have more information
+    inside context. Like session or other stuff. Or maybe not?
+[ ] TODO
+
+
+

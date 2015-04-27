@@ -4,26 +4,29 @@
 </head>
 <body>
 	<h2>LOOK INTO CONSOLE</h2>
-	<button onclick="pipe(2).then(printResult)">RUN</button>
-<script type="text/javascript" src="/bundle.js"></script>
-<script type="text/javascript">
-window.pipe = require('pipe');
-var PromisePipe = require('PromisePipe');
+	<form>
+		<input id="val" type="text" value="2"/>
+	</form>	
+	<button onclick="pipe(+document.getElementById('val').value).then(printResult)">RUN</button>
+	<script type="text/javascript" src="/bundle.js"></script>
+	<script type="text/javascript">
+	window.pipe = require('pipe');
+	var PromisePipe = require('PromisePipe');
 
-var socket = io.connect('http://localhost:3000');
-socket.on('messageToClient', function (message) {
-  PromisePipe.execTransitionMessage(message);
-});
+	var socket = io.connect('http://localhost:3000');
+	socket.on('messageToClient', function (message) {
+	  PromisePipe.execTransitionMessage(message);
+	});
 
 
-PromisePipe.envTransition('client', 'server', function(message){
-	socket.emit('messageToServer', message);
-	return PromisePipe.promiseMessage(message);
-});
+	PromisePipe.envTransition('client', 'server', function(message){
+		socket.emit('messageToServer', message);
+		return PromisePipe.promiseMessage(message);
+	});
 
-function printResult(data){
-	console.log("RESULT CLIENT: " + data);
-}
+	function printResult(data){
+		console.log("RESULT CLIENT: " + data);
+	}
 
 
 </script>

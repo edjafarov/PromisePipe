@@ -1544,7 +1544,7 @@ module.exports = PromisePipe()
 
 	function plus(a){
 		return function(data, context){
-			console.log("PLUS on " + ENV, data+a, context);
+			console.log("PLUS on " + ENV, data+a);
 			context.stack.push("PLUS on " + ENV);
 			return data + a;
 		}
@@ -1552,21 +1552,21 @@ module.exports = PromisePipe()
 
 	function minus(a){
 		return function(data, context){
-			console.log("MINUS on " + ENV, data - a, context);
+			console.log("MINUS on " + ENV, data - a);
 			context.stack.push("MINUS on " + ENV);
 			return data - a;
 		}
 	}	
 	function multipy(a){
 		return function(data, context){
-			console.log("MULTIPLY on " + ENV,data * a, context);
+			console.log("MULTIPLY on " + ENV,data * a);
 			context.stack.push("MULTIPLY on " + ENV);
 			return data * a;
 		}
 	}	
 	function pow(a){
 		return function(data, context){
-			console.log("POW on " + ENV,Math.pow(data, a), context);
+			console.log("POW on " + ENV,Math.pow(data, a));
 			context.stack.push("POW on " + ENV);
 			return Math.pow(data, a);
 		}
