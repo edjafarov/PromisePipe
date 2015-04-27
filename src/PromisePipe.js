@@ -301,12 +301,12 @@ function PromisePiperFactory(){
 
 module.exports = PromisePiperFactory;
 
-
+/*
 [ ] TODO: create urtility to make easier env specific 
     context augumenting.
     The problem is that on server we should have more information
     inside context. Like session or other stuff. Or maybe not?
 [ ] TODO
-
+*/
 
 
