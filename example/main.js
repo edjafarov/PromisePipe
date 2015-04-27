@@ -1,5 +1,5 @@
 var PromisePipe = require('./PromisePipe');
-
+var Promise = require('es6-promise').Promise;
 var ENV = 'CLIENT';
 //set up server
 if(typeof(window) !== 'object'){
@@ -8,15 +8,37 @@ if(typeof(window) !== 'object'){
 }
 
 
-
+//((2+5+6+10)*2)^3-2-6 = 10640
 module.exports = PromisePipe()
-	.then(prepare)
 	.then(plus(5))
 	.then(minus(6))
+	.then(doOnServer(plus(10)))
 	.then(doOnServer(multipy(2)))
-	.then(doOnServer(pow(3)))
-	.then(doOnServer(plus(2)))
-	.then(plus(2));
+	.then(pow(3))
+	.then(doOnServer(minus(2)))
+	.then(minus(6))
+
+
+
+
+	function plus(a){
+		return function(data, context){
+			return doAsyncStuff("add "+a+" to "+data, function(){
+				return data + a;
+			})
+		}
+	}
+
+	function minus(a){
+		return function(data, context){
+			return doAsyncStuff("subtract "+a+" of "+data, function(){
+				return data - a;
+			});
+		}
+	}	
+
+
+
 
 
 	function doOnServer(fn){
@@ -31,32 +53,31 @@ module.exports = PromisePipe()
 
 	}
 
-	function plus(a){
-		return function(data, context){
-			console.log("PLUS on " + ENV, data+a);
-			context.stack.push("PLUS on " + ENV);
-			return data + a;
-		}
-	}
 
-	function minus(a){
-		return function(data, context){
-			console.log("MINUS on " + ENV, data - a);
-			context.stack.push("MINUS on " + ENV);
-			return data - a;
-		}
-	}	
+
 	function multipy(a){
 		return function(data, context){
-			console.log("MULTIPLY on " + ENV,data * a);
-			context.stack.push("MULTIPLY on " + ENV);
-			return data * a;
+			return doAsyncStuff("multipy "+data+" by "+a, function(){
+				return data * a;
+			});			
 		}
 	}	
 	function pow(a){
 		return function(data, context){
-			console.log("POW on " + ENV,Math.pow(data, a));
-			context.stack.push("POW on " + ENV);
-			return Math.pow(data, a);
+			return doAsyncStuff("power "+data+" by "+a, function(){
+				return Math.pow(data, a);
+			});				
 		}
 	}	
+
+	function doAsyncStuff(text, fn){
+		console.log(text);
+		return new Promise(function(res, rej){
+			var result = fn.call(null);
+
+			setTimeout(function(){
+				console.log("=", result);
+				res(result);
+			}, 1000);
+		})
+	}

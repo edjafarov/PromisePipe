@@ -9,20 +9,21 @@ function PromisePiperFactory(){
     var result = function(data, context){
       context = context || {};
 
+      // set Random PromisePipe call ID
       Object.defineProperty(context, '_pipecallId', {
         configurable: true,
         enumerable: false,
         writable: false,
         value: Math.ceil(Math.random()*Math.pow(10,16))
       })
-
+      // set current PromisePipe env
       Object.defineProperty(context, '_env', {
         configurable: true,
         enumerable: false,
         writable: false,
         value: PromisePiper.env
       })   
-
+      // cleanup PromisePipe call ID/and env at the Pipe end 
       function cleanup(data, context){
         delete context._pipecallId;
         delete context._env;
@@ -32,7 +33,9 @@ function PromisePiperFactory(){
       clean._env = PromisePiper.env;
 
       var chain = [].concat(sequence, [clean]);
+      // TODO: check if we need to bind stuff
       chain = chain.map(bindTo(context).bindIt.bind(result));
+      // run the chain
       return doit(chain, data, result, context);
     }
 
@@ -40,6 +43,7 @@ function PromisePiperFactory(){
     result._id = ID();
     PromisePiper.pipes[result._id] = sequence;
 
+    // add function to the chain of a pipe
     result.then = function(){
       var args = [].slice.call(arguments);
       args._env = args[0]._env || PromisePiper.env;
@@ -47,6 +51,7 @@ function PromisePiperFactory(){
       sequence.push(args);
       return result;
     }
+    // add catch to the chain of a pipe
     result.catch = function(fn){
       fn.isCatch = true;
       var args = [fn];
@@ -55,6 +60,7 @@ function PromisePiperFactory(){
       sequence.push(args);
       return result;
     }
+    // join pipes
     result.join = function(){
       var pipers = [].slice.call(arguments);
 
@@ -65,15 +71,17 @@ function PromisePiperFactory(){
       var newSequence = sequence.concat.apply(sequence, sequences);
       return PromisePiper(newSequence);
     }
-
+    // get an array of pipes
     result._getSequence = function(){
       return sequence;
     }
+
+    // deprecated so far:
     result._getRec = function(){
       return rec;
     }  
 
-
+    // add API extensions for the promisepipe
     result = Object.keys(PromisePiper.transformations).reduce(function(thePipe, name){
       var customApi = PromisePiper.transformations[name];
       if(typeof(customApi) == 'object'){
@@ -86,6 +94,7 @@ function PromisePiperFactory(){
 
     return result;  
   }
+
   function wrapObjectPromise(customApi, sequence, result){
     return Object.keys(customApi).reduce(function(api, apiname){
       if(apiname.charAt(0) == "_") return api;
@@ -114,10 +123,11 @@ function PromisePiperFactory(){
       return result;
     }
   }
-
+  // PromisePipe is a singleton
+  // that knows about all pipes and you can get a pipe by ID's
   PromisePiper.pipes = {};
 
-
+  // the ENV is a client by default
   PromisePiper.env = 'client';
 
   PromisePiper.setEnv = function(env){
@@ -126,6 +136,8 @@ function PromisePiperFactory(){
 
   PromisePiper.envTransitions = {};
 
+  // Inside transition you describe how to send message from one
+  // env to another within a Pipe call
   PromisePiper.envTransition = function(from, to, fn){
     if(!PromisePiper.envTransitions[from]) PromisePiper.envTransitions[from] = {};
     PromisePiper.envTransitions[from][to] = fn;
@@ -134,6 +146,7 @@ function PromisePiperFactory(){
 
   PromisePiper.transformations = {};
 
+  // You can extend PromisePipe API with extensions
   PromisePiper.use = function(name, transformation, options){
     options = options || {}
     if(!options._env) options._env = PromisePiper.env;
@@ -144,7 +157,9 @@ function PromisePiperFactory(){
     })
     
   }
-
+  // when you pass Message to another env, you have to wait 
+  // until it will come back
+  // messageResolvers save the call and resoves it when message came back
   PromisePiper.messageResolvers = {};
 
   PromisePiper.promiseMessage = function(message){
@@ -156,7 +171,8 @@ function PromisePiperFactory(){
       };
     })
   }
-
+  // when you pass a message within a pipe to other env
+  // you should 
   PromisePiper.execTransitionMessage = function execTransitionMessage(message){
 
     if(PromisePiper.messageResolvers[message.call]){
@@ -199,7 +215,10 @@ function PromisePiperFactory(){
       call: callId
     }
   }
+  
+  PromisePiper.withContext = function(context){
 
+  }
 
   // build a chain of promises
   function doit(sequence, data, pipe, ctx){

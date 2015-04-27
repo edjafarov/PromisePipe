@@ -13,14 +13,13 @@ var PromisePipe = require('./PromisePipe');
 
 
 app.use(function(req,res,next){
-	pipe(1).then(function(data){
+	/*pipe(1).then(function(data){
 		console.log("RESULT SERVER: " + data);
 		console.log("");
 		console.log("");
-		console.log("");
-
-		next();
-	})
+		console.log("");		
+	})*/
+	next();
 })
 app.use(express.static("./"))
 
