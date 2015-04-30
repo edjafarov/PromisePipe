@@ -20,7 +20,8 @@ var saveEventItem = PromisePipe()
 .catchError('item:add:reject')
 ```
 
-
+PromisePipe can live on client and server simultaneously allowing you to describe your business logic completely instead of thinking about client/server communication.
+![](http://g.recordit.co/0jVhHM2rOW.gif)
 
 ##install
 
