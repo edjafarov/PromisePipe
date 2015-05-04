@@ -29,9 +29,9 @@ describe('PromisePipe when comes to chains from other env', function(){
 	fn3.withArgs(data2).returns(data2);
 	fn4.withArgs(data1, context).returns(data1);
 	fn4.withArgs(data2, context).returns(data2);
-	
 
-	var pipe = PromisePipe()		
+
+	var pipe = PromisePipe()
 			.then(fn1)
 			.then(fn2)
 			.then(fn3)
@@ -54,9 +54,9 @@ describe('PromisePipe when comes to chains from other env', function(){
 		sinon.assert.notCalled(fn2);
 		sinon.assert.notCalled(fn3)
 		sinon.assert.calledOnce(fn4);
-		sinon.assert.calledWith(fn4, data1);	
-		sinon.assert.calledWithExactly(finish, data1);	
-	})			
+		sinon.assert.calledWith(fn4, data1);
+		sinon.assert.calledWithExactly(finish, data1);
+	})
 	describe('create transition message should create message consumable with execTransitionMessage', function(){
 		before(function(done){
 
@@ -76,9 +76,9 @@ describe('PromisePipe when comes to chains from other env', function(){
 			sinon.assert.calledOnce(fn2);
 			sinon.assert.calledOnce(fn3)
 			sinon.assert.calledTwice(fn1);
-			sinon.assert.calledTwice(fn4);		
+			sinon.assert.calledTwice(fn4);
 			sinon.assert.calledWith(fn4, data2);
-			sinon.assert.calledWithExactly(finish, data2);	
+			sinon.assert.calledWithExactly(finish, data2);
 		})
 	})
 })
