@@ -21,6 +21,7 @@ var saveEventItem = PromisePipe()
 ```
 
 PromisePipe can live on client and server simultaneously allowing you to describe your business logic completely instead of thinking about client/server communication.
+
 ![](http://g.recordit.co/0jVhHM2rOW.gif)
 
 ##install
@@ -31,7 +32,7 @@ npm install promise-pipe
 
 You can extend ```PromisePipe``` API with additional methods. Thus you are able to build your own customized DSL.
 ```javascript
-var PromisePipe = require('promise-pipe');
+var PromisePipe = require('promise-pipe')();
 
 PromisePipe.use('log', function(data, context, name){
 	if(name) {
@@ -63,6 +64,14 @@ PromisePipe.use('custom', handler);
 
 PromisePipe().custom(arg1, ..., argN)
 ```
+
+###Transitions
+If the PromisePipe live on several environments you should describe how to pass the message between environments. Following methods are built for that.
+
+###PromisePipe.envTransition(from, to, handler)
+
+###PromisePipe.execTransitionMessage(message)
+
 
 ###Pipe
 Is a function that returns a promise. First argument is a data, second is a context. While `data` behaves the same way as in Promises `context` is passing thorough whole chain of promises.
