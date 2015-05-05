@@ -37,12 +37,12 @@ You can extend ```PromisePipe``` API with additional methods. Thus you are able 
 var PromisePipe = require('promise-pipe')();
 
 PromisePipe.use('log', function(data, context, name){
-	if(name) {
-			console.log(data[name]);
-		} else {
-			console.log(data)
-		}
-		return data;
+  if(name) {
+      console.log(data[name]);
+    } else {
+      console.log(data)
+    }
+    return data;
 })
 
 var action = PromisePipe().log().log('foo');
@@ -59,8 +59,8 @@ Allows to build your own customized DSL. ```handler``` is a function with argume
 
 ```javascript
 function handler(data, context, arg1, ..., argN){
-	//you can return Promise
-	return data;
+  //you can return Promise
+  return data;
 }
 PromisePipe.use('custom', handler);
 
@@ -81,15 +81,15 @@ Is a function that returns a promise. First argument is a data, second is a cont
 ```javascript
 var pipe = PromisePipe()
 .then(function(data, context){
-	console.log(data, context);
-		context.foo = "bar";
-	return data + 1;
+  console.log(data, context);
+    context.foo = "bar";
+  return data + 1;
 }).then(function(data, context){
-	console.log(data, context);
-		context.xyz = "baz";
-	return data + 1;
+  console.log(data, context);
+    context.xyz = "baz";
+  return data + 1;
 }).then(function(data, context){
-	console.log(data, context);
+  console.log(data, context);
 })
 pipe(2, {});
 //2 {}
@@ -101,7 +101,7 @@ As in Promises you can pass two functions inside for success and fail.
 ```javascript
 var pipe = PromisePipe()
 .then(function(data, context){
-	return //Promise.resolve/reject
+  return //Promise.resolve/reject
 }).then(success, fail)
 ```
 ###Pipe:catch
@@ -113,15 +113,15 @@ You can join PromisePipes if you like.
 ```javascript
 var pipe = PromisePipe()
 .then(function(data, context){
-	return data + 1;
+  return data + 1;
 });
 var pipe2 = PromisePipe()
 .then(function(data, context){
-	return data + 2;
+  return data + 2;
 })
 .join(pipe)
 .then(function(data){
-	console.log(data);
+  console.log(data);
 });
 
 pipe2(1) //4
