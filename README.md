@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/edjafarov/PromisePipe.svg?branch=master)](https://travis-ci.org/edjafarov/PromisePipe)
+
 #PromisePipe - reusable promise chains
 
 PromisePipe allows to build a reusable Promise chain with custom API. Promise pipe returns a function which you can call multiple times and each time all chains will be called.
