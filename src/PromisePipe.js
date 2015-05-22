@@ -138,11 +138,16 @@ function PromisePiperFactory(){
 
   // Inside transition you describe how to send message from one
   // env to another within a Pipe call
-  PromisePiper.envTransition = function(from, to, fn){
+  PromisePiper.envTransition = function(from, to, transition){
     if(!PromisePiper.envTransitions[from]) PromisePiper.envTransitions[from] = {};
-    PromisePiper.envTransitions[from][to] = fn;
+    PromisePiper.envTransitions[from][to] = transition;
   }
 
+  //env transformations
+  PromisePiper.envContextTransformations = function(from, to, transformation){
+    if(!PromisePiper.contextTransformations[from]) PromisePiper.contextTransformations[from] = {};
+    PromisePiper.contextTransformations[from][to] = transformation;
+  }
 
   PromisePiper.transformations = {};
 
@@ -215,7 +220,9 @@ function PromisePiperFactory(){
       call: callId
     }
   }
-
+  /*
+    experimental
+  */
   PromisePiper.localContext = function(context){
     return {
       execTransitionMessage: function(message){
@@ -226,6 +233,13 @@ function PromisePiperFactory(){
           message.context = origContext;
           return data;
         });
+      },
+      //TODO:cover with Tests
+      wrap: function(fn){
+        return function(data, origContext){
+          context.__proto__ = origContext;
+          return fn(data, context);
+        }
       }
     }
   }
@@ -336,4 +350,6 @@ module.exports = PromisePiperFactory;
     The problem is that on server we should have more information
     inside context. Like session or other stuff. Or maybe not?
 [ ] TODO
+
+PromiseSocketServer
 */
