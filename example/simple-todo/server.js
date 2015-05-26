@@ -10,8 +10,6 @@ console.log("check localhost:3000");
 
 var PromisePipe = require('./PromisePipe');
 
-
-
 app.use(function(req,res,next){
 	next();
 })
@@ -32,7 +30,7 @@ var todolist = [
 
 io.on('connection', function (socket) {
   socket.on('messageToServer', function (message) {
-    PromisePipe.execTransitionMessage(message).then(function(data){
+    PromisePipe.localContext({todolist: todolist}).execTransitionMessage(message).then(function(data){
     	message.data = data;
     	socket.emit('messageToClient', message);
     })
