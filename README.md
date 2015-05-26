@@ -2,7 +2,7 @@
 
 #PromisePipe - reusable promise chains
 
-PromisePipe allows to build a reusable Promise chain with custom API. Promise pipe returns a function which you can call multiple times and each time all chains will be called.
+PromisePipe allows to build a reusable Promise chain with custom API. Promise pipe returns a function which you can call multiple times and each time all chains will be called and the result of the function would be a promise.
 
 ```javascript
 var pipe = PromisePipe().then(doSmth).then(doSmthElse);
@@ -12,7 +12,7 @@ var result = pipe(1); // calls doSmth, doSmthElse and returns a promise
 
 ```
 
-PromisePipe is built with small API and ability to extend API with custom functions. So you can build your specific API that describes your business logic better.
+PromisePipe is built with small API and ability to extend API with custom methods. You can build your specific API that describes your business logic better.
 
 ```javascript
 var saveEventItem = PromisePipe()
@@ -22,9 +22,11 @@ var saveEventItem = PromisePipe()
 .catchError('item:add:reject')
 ```
 
-PromisePipe can live on client and server simultaneously allowing you to describe your business logic completely instead of thinking about client/server communication.
+PromisePipe can live on client and server simultaneously allowing to describe business logic completely instead of thinking about client/server communication.
 
 ![](http://g.recordit.co/0jVhHM2rOW.gif)
+
+check simple [todo app](https://github.com/edjafarov/PromisePipe/tree/master/example/simple-todo)
 
 ##install
 
@@ -74,6 +76,11 @@ If the PromisePipe live on several environments you should describe how to pass 
 
 ###PromisePipe.execTransitionMessage(message)
 
+###PromisePipe.localContext(context)
+
+#### PromisePipe.localContext(context).execTransitionMessage(message)
+
+#### PromisePipe.localContext(context).wrap(fn)
 
 ###Pipe
 Is a function that returns a promise. First argument is a data, second is a context. While `data` behaves the same way as in Promises `context` is passing thorough whole chain of promises.
