@@ -1,4 +1,4 @@
-var PromisePipe = require('./PromisePipe');
+var PromisePipe = require('promise-pipe')();
 var Promise = require('es6-promise').Promise;
 var ENV = 'CLIENT';
 //set up server
@@ -27,8 +27,6 @@ var addItem = doOnServer(function addItem(data, context){
   return data;
 })
 
-
-
 var removeById = doOnServer(function removeById(data, context){
   var resId = null;
   context.todolist.forEach(function(item, i){
@@ -55,6 +53,7 @@ var clearDone = doOnServer(function clearDone(data, context){
 })
 
 module.exports = {
+  PromisePipe: PromisePipe,
   addItem: PromisePipe()
     .then(addItem)
     .then(returnItems)
@@ -93,7 +92,7 @@ module.exports = {
     result+=data.map(function(item, i){
       var name = item.name;
       if(item.done) name = "<strike>"+name + "</strike>";
-      return "<li>"+name+"<button onclick='pipe.doneItem("+item.id+")'>+</button><button onclick='pipe.removeItem("+item.id+")'>x</button></li>";
+      return "<li>"+name+"<button onclick='main.doneItem("+item.id+")'>+</button><button onclick='main.removeItem("+item.id+")'>x</button></li>";
     }).join('');
     result+="</ul>";
     return result;

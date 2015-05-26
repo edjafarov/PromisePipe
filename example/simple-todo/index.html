@@ -4,28 +4,32 @@
 </head>
 <body>
 	<h2>LOOK INTO CONSOLE</h2>
-	<div><input type="text" name="name" id="name"/> <button onclick="pipe.addItem(document.getElementById('name').value);document.getElementById('name').value = ''">add</button></div>
+	<div><input type="text" name="name" id="name"/> <button onclick="main.addItem(document.getElementById('name').value);document.getElementById('name').value = ''">add</button></div>
 	<div id="todolist"></div>
-	<div><button onclick="pipe.clearDoneItems()">Clear comleted</button></div>
+	<div><button onclick="main.clearDoneItems()">Clear comleted</button></div>
 	<script type="text/javascript" src="/bundle.js"></script>
 	<script type="text/javascript">
-	window.pipe = require('pipe');
-	var PromisePipe = require('PromisePipe');
-
+	window.main = require('main');
+	var PromisePipe = window.main.PromisePipe;
 
 	var socket = io.connect('http://localhost:3000');
-	socket.on('messageToClient', function (message) {
-	  PromisePipe.execTransitionMessage(message);
-	});
+
+
+	function socketPipeTransport(socket){
+		socket.on('messageToClient', function (message) {
+		  PromisePipe.execTransitionMessage(message);
+		});
 
 
 
-	PromisePipe.envTransition('client', 'server', function(message){
-		socket.emit('messageToServer', message);
-		return PromisePipe.promiseMessage(message);
-	});
+		PromisePipe.envTransition('client', 'server', function(message){
+			socket.emit('messageToServer', message);
+			return PromisePipe.promiseMessage(message);
+		});
+	}
 
-	window.pipe.getItems();
+	//init app
+	window.main.getItems();
 </script>
 </body>
 </html>
