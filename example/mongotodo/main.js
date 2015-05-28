@@ -11,21 +11,25 @@ if(typeof(window) !== 'object'){
  ENV = 'SERVER';
 }
 
-var prepareItem = function addItem(data, context){
+var prepareItem = doOnServer(function addItem(data, context){
   var item = {
+    uid: context.session.id,
     name: data,
     done: false
   }
   return item;
-}
+})
 
-var cleanData = doOnServer(function(data){
-  return {};
+var forMe = doOnServer(function(data, context){
+  return {
+    uid: context.session.id
+  };
 });
 
-var toggleModifyItem = doOnServer(function(data){
+var toggleModifyItem = doOnServer(function(data, context){
   return {
     query:{
+      uid: context.session.id,
       _id:data[0]._id
     },
     update:{
@@ -36,14 +40,16 @@ var toggleModifyItem = doOnServer(function(data){
   };
 });
 
-var byId = doOnServer(function(data){
+var byId = doOnServer(function(data, context){
   return {
+    uid: context.session.id,
     _id: MongoPipeApi.ObjectId(data)
   };
 });
 
-var byDoneTrue = doOnServer(function(data){
+var byDoneTrue = doOnServer(function(data, context){
   return {
+    uid: context.session.id,
     done: true
   };
 });
@@ -55,18 +61,19 @@ module.exports = {
   addItem: PromisePipe()
     .then(prepareItem)
     .db.insert.items()
-    .then(cleanData)
+    .then(forMe)
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
   removeItem: PromisePipe()
     .then(byId)
     .db.remove.items()
-    .then(cleanData)
+    .then(forMe)
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
   getItems: PromisePipe()
+    .then(forMe)
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
@@ -75,14 +82,14 @@ module.exports = {
     .db.findOne.items()
     .then(toggleModifyItem)
     .db.findAndModify.items()
-    .then(cleanData)
+    .then(forMe)
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
   clearDoneItems: PromisePipe()
     .then(byDoneTrue)
     .db.remove.items()
-    .then(cleanData)
+    .then(forMe)
     .db.find.items()
     .then(buildHtml)
     .then(renderItems)
@@ -92,7 +99,7 @@ module.exports = {
 
 
   function buildHtml(data){
-
+    
     data = data || [];
 
     result = renderTodoApp(renderAppHeader()
