@@ -1,0 +1,36 @@
+<html>
+<head>
+	<script src="/socket.io/socket.io.js"></script>
+	<link rel="stylesheet" href="/css/base.css">
+	<link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+
+	<div id="todoapp"></div>
+	
+	<script type="text/javascript" src="/bundle.js"></script>
+	<script type="text/javascript">
+	window.main = require('main');
+	var PromisePipe = window.main.PromisePipe;
+
+	var socket = io.connect('http://localhost:3000');
+
+
+	function socketPipeTransport(socket){
+		socket.on('messageToClient', function (message) {
+		  PromisePipe.execTransitionMessage(message);
+		});
+
+
+
+		PromisePipe.envTransition('client', 'server', function(message){
+			socket.emit('messageToServer', message);
+			return PromisePipe.promiseMessage(message);
+		});
+	}
+	socketPipeTransport(socket);
+	//init app
+	window.main.getItems();
+</script>
+</body>
+</html>
