@@ -40,6 +40,22 @@ var toggleModifyItem = doOnServer(function(data, context){
   };
 });
 
+var toggleAllItem = doOnServer(function(data, context){
+  return [
+    {
+      uid: context.session.id
+    },
+    {
+      $set: {
+        done: data
+      }
+    },
+    {
+      multi: true
+    }
+  ]
+});
+
 var byId = doOnServer(function(data, context){
   return {
     uid: context.session.id,
@@ -58,6 +74,7 @@ var byDoneTrue = doOnServer(function(data, context){
 
 module.exports = {
   PromisePipe: PromisePipe,
+
   addItem: PromisePipe()
     .then(prepareItem)
     .db.insert.items()
@@ -65,6 +82,7 @@ module.exports = {
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
+
   removeItem: PromisePipe()
     .then(byId)
     .db.remove.items()
@@ -72,11 +90,13 @@ module.exports = {
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
+
   getItems: PromisePipe()
     .then(forMe)
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
+
   doneItem: PromisePipe()
     .then(byId)
     .db.findOne.items()
@@ -86,6 +106,15 @@ module.exports = {
     .db.find.items()
     .then(buildHtml)
     .then(renderItems),
+
+  doneAllItem: PromisePipe()
+    .then(toggleAllItem)
+    .db.update.items()
+    .then(forMe)
+    .db.find.items()
+    .then(buildHtml)
+    .then(renderItems),
+
   clearDoneItems: PromisePipe()
     .then(byDoneTrue)
     .db.remove.items()
@@ -99,7 +128,7 @@ module.exports = {
 
 
   function buildHtml(data){
-    
+
     data = data || [];
 
     result = renderTodoApp(renderAppHeader()
@@ -112,7 +141,7 @@ module.exports = {
           result = '<li class="'+(item.done?'completed':'')+'">'+result+'</li>'
           return result;
         }).join('') + "</ul>"
-      )
+      , data)
       + renderAppFooter(data));
     return result;
   }
@@ -128,8 +157,12 @@ module.exports = {
     return '<header id="header"><h1>todos</h1><input id="new-todo" placeholder="What needs to be done?" autofocus onkeyup="event.which == 13 && main.addItem(this.value);"></header>';
   }
 
-  function renderAppMain(wrap){
-    return '<section id="main"><input id="toggle-all" type="checkbox"><label for="toggle-all">Mark all as complete</label>' + wrap + '</section>';
+  function renderAppMain(wrap, items){
+    var allChecked = items.reduce(function(result, item){
+      if(!item.done) return false;
+      return result;
+    }, true);
+    return '<section id="main"><input id="toggle-all" '+(allChecked?'checked':'')+' type="checkbox" onclick="main.doneAllItem(this.checked)"><label for="toggle-all">Mark all as complete</label>' + wrap + '</section>';
   }
 
   function renderAppFooter(data){
