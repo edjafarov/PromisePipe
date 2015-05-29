@@ -12,9 +12,7 @@ var MongoStore = require('connect-mongo')(expressSession);
 var myCookieParser = cookieParser('secret');
 
 var sessionStore = new MongoStore({
-	host: 'localhost', // Default, optional
-	port: 27017, // Default, optional
-	db: 'sessions' // Required
+	url: process.env.MONGOHQ_URL || "mongodb://localhost:27017/test" 
 });
 server.listen(process.env.PORT || 3000)
 

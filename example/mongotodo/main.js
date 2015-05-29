@@ -1,4 +1,4 @@
-var PromisePipe = require('../../src/PromisePipe')();
+var PromisePipe = require('promise-pipe')();
 var Promise = require('es6-promise').Promise;
 var MongoPipeApi = require('mongo-pipe-api');
 
@@ -9,7 +9,7 @@ var ENV = 'CLIENT';
 if(typeof(window) !== 'object'){
  PromisePipe.setEnv('server');
  ENV = 'SERVER';
- mongodbUrl = process.env.MONGO_URL || mongodbUrl;
+ mongodbUrl = process.env.MONGOHQ_URL || mongodbUrl;
 }
 
 
@@ -147,14 +147,14 @@ module.exports = {
           return result;
         }).join('') + "</ul>"
       , data)
-      + renderAppFooter(data));
+      + renderAppFooter(data)) + renderAppInfo();
     return result;
   }
 
 
 
   function renderItems(data){
-    document.getElementById('todoapp').innerHTML = data;
+    document.getElementById('todo-app').innerHTML = data;
     return data;
   }
 
@@ -177,8 +177,10 @@ module.exports = {
   function renderTodoApp(wrap){
     return '<section id="todoapp">' + wrap + '</section>';
   }
-
-	function doOnServer(fn){
-		fn._env = 'server';
-		return fn
-	}
+  function renderAppInfo(){
+    return '<div id="info"><p>Written by <a href="https://github.com/edjafarov">Eldar Djafarov</a></p><p><a href="https://github.com/edjafarov/PromisePipe/tree/master/example/mongotodo">PromisePipe based MongoDb persistent TodoApp</a> is a part of <a href="http://todomvc.com">TodoMVC</a></p></div>'
+  }
+  function doOnServer(fn){
+    fn._env = 'server';
+    return fn
+  }
