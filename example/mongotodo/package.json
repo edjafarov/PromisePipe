@@ -16,6 +16,7 @@
   },
   "homepage": "https://github.com/edjafarov/PromisePipe",
   "dependencies": {
+    "connect-mongo": "^0.8.1",
     "cookie-parser": "^1.3.5",
     "es6-promise": "~2.1.1",
     "express": "~4.12.3",
@@ -23,9 +24,7 @@
     "mongo-pipe-api": "*",
     "promise-pipe": "*",
     "session.socket.io": "^0.2.0",
-    "socket.io": "~1.3.5"
-  },
-  "devDependencies": {
+    "socket.io": "~1.3.5",
     "browserify": "~9.0.7"
   }
 }

@@ -7,18 +7,25 @@ var cookieParser = require('cookie-parser');
 
 var expressSession = require('express-session');
 
+var MongoStore = require('connect-mongo')(expressSession);
 
 var myCookieParser = cookieParser('secret');
-var sessionStore = new expressSession.MemoryStore();
 
-server.listen(3000)
+var sessionStore = new MongoStore({
+	host: 'localhost', // Default, optional
+	port: 27017, // Default, optional
+	db: 'sessions' // Required
+});
+server.listen(process.env.PORT || 3000)
 
-console.log("check localhost:3000");
+console.log("check localhost:" + process.env.PORT||3000);
 
 var PromisePipe = main.PromisePipe;
 
 app.use(myCookieParser);
-app.use(expressSession({ secret: 'secret', store: sessionStore }));
+app.use(expressSession({
+	secret: 'secret', store: sessionStore
+}));
 app.use(express.static("./"))
 
 

@@ -1,15 +1,20 @@
-var PromisePipe = require('promise-pipe')();
+var PromisePipe = require('../../src/PromisePipe')();
 var Promise = require('es6-promise').Promise;
 var MongoPipeApi = require('mongo-pipe-api');
 
-PromisePipe.use('db', MongoPipeApi('test', ['items']), {_env:"server"});
+var mongodbUrl = 'localhost:27017/test';
 
 var ENV = 'CLIENT';
 //set up server
 if(typeof(window) !== 'object'){
  PromisePipe.setEnv('server');
  ENV = 'SERVER';
+ mongodbUrl = process.env.MONGO_URL || mongodbUrl;
 }
+
+
+PromisePipe.use('db', MongoPipeApi(mongodbUrl, ['items']), {_env:"server"});
+
 
 var prepareItem = doOnServer(function addItem(data, context){
   var item = {
@@ -20,13 +25,13 @@ var prepareItem = doOnServer(function addItem(data, context){
   return item;
 })
 
-var forMe = doOnServer(function(data, context){
+var forMe = doOnServer(function forMe(data, context){
   return {
     uid: context.session.id
   };
 });
 
-var toggleModifyItem = doOnServer(function(data, context){
+var toggleModifyItem = doOnServer(function toggleModifyItem(data, context){
   return {
     query:{
       uid: context.session.id,
@@ -40,7 +45,7 @@ var toggleModifyItem = doOnServer(function(data, context){
   };
 });
 
-var toggleAllItem = doOnServer(function(data, context){
+var toggleAllItem = doOnServer(function toggleAllItem(data, context){
   return [
     {
       uid: context.session.id
@@ -56,14 +61,14 @@ var toggleAllItem = doOnServer(function(data, context){
   ]
 });
 
-var byId = doOnServer(function(data, context){
+var byId = doOnServer(function byId(data, context){
   return {
     uid: context.session.id,
     _id: MongoPipeApi.ObjectId(data)
   };
 });
 
-var byDoneTrue = doOnServer(function(data, context){
+var byDoneTrue = doOnServer(function byDoneTrue(data, context){
   return {
     uid: context.session.id,
     done: true

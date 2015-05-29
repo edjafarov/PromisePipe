@@ -1,39 +1,44 @@
 var Promise = require('es6-promise').Promise;
 
 
+function augumentContext(context, property, value){
+  Object.defineProperty(context, property, {
+    configurable: true,
+    enumerable: false,
+    writable: false,
+    value: value
+  })
+}
+
+
+// cleanup PromisePipe call ID/and env at the Pipe end
+function cleanup(data, context){
+  delete context._pipecallId;
+  delete context._env;
+  return data;
+}
+
 function PromisePiperFactory(){
+
+  function doOnPipeEnv(item){
+    item._env = PromisePiper.env;
+    return item
+  }
+
   function PromisePiper(sequence){
     sequence = sequence || []
     var rec = [];
 
-    var result = function(data, context){
+    function result(data, context){
       context = context || {};
-
       // set Random PromisePipe call ID
-      Object.defineProperty(context, '_pipecallId', {
-        configurable: true,
-        enumerable: false,
-        writable: false,
-        value: Math.ceil(Math.random()*Math.pow(10,16))
-      })
+      augumentContext(context, '_pipecallId', Math.ceil(Math.random()*Math.pow(10,16)));
       // set current PromisePipe env
-      Object.defineProperty(context, '_env', {
-        configurable: true,
-        enumerable: false,
-        writable: false,
-        value: PromisePiper.env
-      })
-      // cleanup PromisePipe call ID/and env at the Pipe end
-      function cleanup(data, context){
-        delete context._pipecallId;
-        delete context._env;
-        return data;
-      }
-      var clean = [cleanup];
-      clean._env = PromisePiper.env;
+      augumentContext(context, '_env', PromisePiper.env);
 
-      var chain = [].concat(sequence, [clean]);
-      // TODO: check if we need to bind stuff
+
+      var chain = [].concat(sequence, [doOnPipeEnv([cleanup])]);
+
       chain = chain.map(bindTo(context).bindIt.bind(result));
       // run the chain
       return doit(chain, data, result, context);
@@ -74,11 +79,6 @@ function PromisePiperFactory(){
     // get an array of pipes
     result._getSequence = function(){
       return sequence;
-    }
-
-    // deprecated so far:
-    result._getRec = function(){
-      return rec;
     }
 
     // add API extensions for the promisepipe
@@ -299,12 +299,11 @@ function PromisePiperFactory(){
   function bindTo(that){
     return {
       bindIt: function bindIt(handlers){
-        var result = this;
         var newHandlers = handlers.map(function(argFunc){
           //TODO: maybe it should be optimized for prod
 
           var newArgFunc = function(data){
-            return argFunc.call(result, data, that);
+            return argFunc.call(that, data, that);
           }
 
           Object.keys(argFunc).reduce(function(funObj, key){

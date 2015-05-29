@@ -20,12 +20,12 @@ describe('PromisePipe with 3 functions when called', function(){
 	//if runninng with data2
 	fn1.withArgs(data2, context).returns(data3);
 	fn2.withArgs(data3, context).returns(data1);
-	fn3.withArgs(data1, context).returns(data2);	
-	var pipe = PromisePipe()		
+	fn3.withArgs(data1, context).returns(data2);
+	var pipe = PromisePipe()
 			.then(fn1)
 			.then(fn2)
 			.then(fn3);
-	
+
 	before(function(done){
 		pipe(data1, context).then(finish);
 		done()
@@ -59,7 +59,7 @@ describe('PromisePipe with 3 functions when called', function(){
 			sinon.assert.calledWithExactly(fn1, data2, context);
 			sinon.assert.calledWithExactly(fn2, data3, context);
 			sinon.assert.calledWithExactly(fn3, data1, context);
-		})			
+		})
 		it('should pass its own finish1 function', function(){
 			sinon.assert.calledOnce(finish);
 			sinon.assert.calledOnce(finish1);
@@ -84,7 +84,7 @@ describe('PromisePipe error handling', function(){
 	fn2.withArgs(data2, context).returns(data3);
 	fn3.withArgs(data3, context).returns(data1);
 
-	var pipe = PromisePipe()		
+	var pipe = PromisePipe()
 			.then(function(data, context){
 				return new Promise(function(resolve, reject){
 					process.nextTick(function(){
@@ -100,7 +100,7 @@ describe('PromisePipe error handling', function(){
 				})
 			})
 			.catch(fn3);
-	
+
 	before(function(done){
 		pipe(data1, context).then(finish);
 		done()
@@ -113,10 +113,10 @@ describe('PromisePipe error handling', function(){
 	it('should go fn1, rejected and get to fn3 rightaway to handle error with catch', function(){
 		sinon.assert.calledOnce(fn1);
 		sinon.assert.calledWithExactly(fn1, data1, context);
-		
+
 		sinon.assert.calledOnce(fn3);
 		sinon.assert.calledWithExactly(fn3, data2, context);
-		
+
 		sinon.assert.calledOnce(finish);
 		sinon.assert.calledWithExactly(finish, undefined);
 
@@ -142,8 +142,8 @@ describe('PromisePipe with 3 functions if running async', function(){
 	//if runninng with data2
 	fn1.withArgs(data2, context).returns(data3);
 	fn2.withArgs(data3, context).returns(data1);
-	fn3.withArgs(data1, context).returns(data2);	
-	var pipe = PromisePipe()		
+	fn3.withArgs(data1, context).returns(data2);
+	var pipe = PromisePipe()
 			.then(function(data, context){
 				return new Promise(function(resolve, reject){
 					process.nextTick(function(){
@@ -165,7 +165,7 @@ describe('PromisePipe with 3 functions if running async', function(){
 					});
 				})
 			});
-	
+
 	before(function(done){
 		pipe(data1, context).then(finish);
 		done()
@@ -198,9 +198,9 @@ describe('PromisePipe', function(){
 	var fn1 = sinon.stub();
 	var fn2 = sinon.stub();
 	var finish = sinon.spy();
-	
+
 	fn1.withArgs(data1, context).returns(data2);
-	fn2.withArgs(data2, context).returns(data3);		
+	fn2.withArgs(data2, context).returns(data3);
 
 	it('should return a promise', function(){
 		expect(pipe()).to.be.an.instanceof(Promise);
@@ -227,10 +227,10 @@ describe('PromisePipe', function(){
 		var fn1 = sinon.stub();
 		var fn2 = sinon.stub();
 		var finish = sinon.spy();
-		var fn3 = sinon.stub();		
+		var fn3 = sinon.stub();
 		fn1.withArgs(data1, context).returns(data2);
 		fn2.withArgs(data2, context).returns(data3);
-		fn3.withArgs(data2, context, data4).returns(data3);		
+		fn3.withArgs(data2, context, data4).returns(data3);
 
 		PromisePipe.use('mockMethod', fn3);
 		var customPipe = PromisePipe()
@@ -254,7 +254,7 @@ describe('PromisePipe', function(){
 		var fn1 = sinon.stub();
 		var fn2 = sinon.stub();
 		var finish = sinon.spy();
-		var fn3 = sinon.stub();		
+		var fn3 = sinon.stub();
 		var inner1 = sinon.stub();
 		var inner2 = sinon.stub();
 		var inner3 = sinon.stub();
@@ -277,16 +277,16 @@ describe('PromisePipe', function(){
 			.then(fn1)
 			.withMethod.method1(data4)
 			.then(fn2)
-		
+
 		var customPipe2 = PromisePipe()
 			.then(fn1)
 			.withMethod.method2(data5)
-			.then(fn2)	
+			.then(fn2)
 
 		var customPipe3 = PromisePipe()
 			.then(fn1)
 			.withMethod.method3.innerMethod1(data1)
-			.then(fn2)					
+			.then(fn2)
 
 		before(function(){
 			customPipe1(data1, context).then(finish);
@@ -302,11 +302,11 @@ describe('PromisePipe', function(){
 			sinon.assert.calledOnce(inner2);
 			sinon.assert.calledWithExactly(inner2, data2, context, data5);
 			sinon.assert.calledOnce(inner3);
-			sinon.assert.calledWithExactly(inner3, data2, context, data1);			
+			sinon.assert.calledWithExactly(inner3, data2, context, data1);
 			sinon.assert.calledThrice(fn2);
 			sinon.assert.calledWithExactly(fn2, data2, context);
 		})
-	})	
+	})
 })
 
 
@@ -327,14 +327,14 @@ describe('PromisePipe composition 2 functions, and 2nd will be separate PromisPi
 	//if runninng with data2
 	fn1.withArgs(data2, context).returns(data3);
 	fn2.withArgs(data3, context).returns(data1);
-	fn3.withArgs(data1, context).returns(data2);	
-	var innerPipe = PromisePipe()		
+	fn3.withArgs(data1, context).returns(data2);
+	var innerPipe = PromisePipe()
 			.then(fn2)
-	var pipe = PromisePipe()		
+	var pipe = PromisePipe()
 			.then(fn1)
 			.then(innerPipe)
 			.then(fn3);
-	
+
 	before(function(done){
 		pipe(data1, context).then(finish);
 		done()
