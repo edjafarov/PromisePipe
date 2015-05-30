@@ -28,6 +28,8 @@ PromisePipe can live on client and server simultaneously allowing to describe bu
 
 check simple [todo app](https://github.com/edjafarov/PromisePipe/tree/master/example/simple-todo)
 
+and [todo with mongodb and session](https://github.com/edjafarov/PromisePipe/tree/master/example/mongotodo), live on heroku [https://promisepipe-todo.herokuapp.com/](https://promisepipe-todo.herokuapp.com/)
+
 ##install
 
 npm install promise-pipe
