@@ -37,9 +37,12 @@ function PromisePiperFactory(){
       augumentContext(context, '_env', PromisePiper.env);
 
 
-      var chain = [].concat(sequence, [doOnPipeEnv([cleanup])]);
+      var chain = [].concat(sequence, [doOnPipeEnv(cleanup)]);
 
-      chain = chain.map(bindTo(context).bindIt.bind(result));
+      chain = chain.map(bindTo(context).bindIt.bind(result)).map(function(fn){
+        if(!fn._env) fn._env = PromisePiper.env;
+        return fn;
+      });
       // run the chain
       return doit(chain, data, result, context);
     }
@@ -49,20 +52,16 @@ function PromisePiperFactory(){
     PromisePiper.pipes[result._id] = sequence;
 
     // add function to the chain of a pipe
-    result.then = function(){
-      var args = [].slice.call(arguments);
-      args._env = args[0]._env || PromisePiper.env;
-      args._id = ID();
-      sequence.push(args);
+    result.then = function(fn){
+      if(!fn._id) fn._id = ID();
+      sequence.push(fn);
       return result;
     }
     // add catch to the chain of a pipe
     result.catch = function(fn){
       fn.isCatch = true;
-      var args = [fn];
-      args._env = args[0]._env || PromisePiper.env;
-      args._id = ID();
-      sequence.push(args);
+      if(!fn._id) fn._id = ID();
+      sequence.push(fn);
       return result;
     }
     // join pipes
@@ -116,8 +115,7 @@ function PromisePiperFactory(){
         return transObject.apply(result, argumentsToPassInside);
       };
       resFun.isCatch = transObject.isCatch;
-      var arr = [resFun];
-      arr._env = transObject._env;
+      var arr = resFun;
       arr._id = ID();
       sequence.push(arr);
       return result;
@@ -286,40 +284,28 @@ function PromisePiperFactory(){
         return doWork.then.apply(doWork, [newArgFunc]);
       }
       // if next promise is catch
-      if(funcArr[0] && funcArr[0].isCatch) {
-        return doWork.catch.apply(doWork, funcArr); //do catch
+      if(funcArr && funcArr.isCatch) {
+        return doWork.catch.apply(doWork, [funcArr]); //do catch
       }
 
 
-      return doWork.then.apply(doWork, funcArr);
+      return doWork.then.apply(doWork, [funcArr]);
     }, Promise.resolve(data));
   }
 
 
   function bindTo(that){
     return {
-      bindIt: function bindIt(handlers){
-        var newHandlers = handlers.map(function(argFunc){
-          //TODO: maybe it should be optimized for prod
+      bindIt: function bindIt(handler){
+        var newArgFunc = function(data){
+          return handler.call(that, data, that);
+        }
 
-          var newArgFunc = function(data){
-            return argFunc.call(that, data, that);
-          }
-
-          Object.keys(argFunc).reduce(function(funObj, key){
-            funObj[key] = argFunc[key]
-            return funObj;
-          }, newArgFunc);
-          return newArgFunc;
-        })
-
-        Object.keys(handlers).forEach(function(name){
-          if(name.charAt(0) == "_"){
-            newHandlers[name] = handlers[name];
-          }
-
-        })
-        return newHandlers;
+        Object.keys(handler).reduce(function(funObj, key){
+          funObj[key] = handler[key]
+          return funObj;
+        }, newArgFunc);
+        return newArgFunc;
       }
     }
   }
