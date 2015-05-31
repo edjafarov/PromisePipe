@@ -21,6 +21,7 @@ function cleanup(data, context){
 function PromisePiperFactory(){
 
   function doOnPipeEnv(item){
+    item._id = ID();
     item._env = PromisePiper.env;
     return item
   }
@@ -194,16 +195,15 @@ function PromisePiperFactory(){
     context._env = PromisePiper.env;
     delete context._passChains;
 
-    var ithChain = PromisePiper.pipes[message.pipe].map(function(el){
-      return el._id
-    }).indexOf(message.chains[0]);
+
     var sequence = PromisePiper.pipes[message.pipe];
     var chain = [].concat(sequence);
 
     var ids = chain.map(function(el){
       return el._id;
     });
-    var newChain = chain.slice(ids.indexOf(message.chains[0]), ids.indexOf(message.chains[1]));
+
+    var newChain = chain.slice(ids.indexOf(message.chains[0]), ids.indexOf(message.chains[1]) + 1);
 
     newChain = newChain.map(bindTo(context).bindIt);
     return doit(newChain, message.data, {_id: message.pipe}, context);
@@ -257,15 +257,13 @@ function PromisePiperFactory(){
         var lastChain = sequence.map(function(el){
           return el._env;
         }).indexOf(PromisePiper.env, firstChainN );
-        lastChain = (lastChain == -1)?(sequence.length - 1):lastChain;
 
-
+        lastChain = (lastChain == -1)?(sequence.length - 1):(lastChain - 1);
 
         ctx._passChains = sequence.map(function(el){
           return el._id
-        }).slice(firstChainN+1, lastChain);
+        }).slice(firstChainN, lastChain + 1);
         // If there is a transition
-
         if(PromisePiper.envTransitions[ctx._env] && PromisePiper.envTransitions[ctx._env][funcArr._env]){
           var newArgFunc = function(data){
             var msg = PromisePiper.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[lastChain]._id, ctx._pipecallId);

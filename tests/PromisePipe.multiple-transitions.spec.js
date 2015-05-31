@@ -1,8 +1,3 @@
-var PromisePipe = require('../src/PromisePipe')();
-var PromisePipeServer = require('../src/PromisePipe')();
-var PromisePipeWorker = require('../src/PromisePipe')();
-PromisePipeServer.setEnv('server');
-PromisePipeWorker.setEnv('worker');
 
 var EventEmitter = require('events').EventEmitter;
 
@@ -11,6 +6,12 @@ var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
 
 describe('PromisePipe when comes to chains from other env', function(){
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
+	var PromisePipeWorker = require('../src/PromisePipe')();
+	PromisePipeServer.setEnv('server');
+	PromisePipeWorker.setEnv('worker');
+
 	var context = {};
 	var context1 = {};
 	var context2 = {};
@@ -136,7 +137,15 @@ describe('PromisePipe when comes to chains from other env', function(){
 	})
 })
 
-xdescribe('PromisePipe when comes to chains from other env', function(){
+
+describe('PromisePipe when comes to chains from other env', function(){
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
+	var PromisePipeWorker = require('../src/PromisePipe')();
+	PromisePipeServer.setEnv('server');
+	PromisePipeWorker.setEnv('worker');
+
+
 	var context = {};
 	var context1 = {};
 	var context2 = {};
@@ -206,9 +215,9 @@ xdescribe('PromisePipe when comes to chains from other env', function(){
 	});
 
 	fn2._env = 'server';
-	fn3._env = 'worker';
-	fn4._env = 'worker';
-	fn5._env = 'worker';
+	fn3._env = 'server';
+	fn4._env = 'server';
+	fn5._env = 'server';
 
 	var finish = sinon.spy();
 
