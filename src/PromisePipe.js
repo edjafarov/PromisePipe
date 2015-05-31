@@ -180,12 +180,18 @@ function PromisePiperFactory(){
   PromisePiper.execTransitionMessage = function execTransitionMessage(message){
 
     if(PromisePiper.messageResolvers[message.call]){
+
       //inherit from coming message context
       Object.keys(message.context).reduce(function(ctx, name){
         ctx[name] = message.context[name];
         return ctx;
       }, PromisePiper.messageResolvers[message.call].context);
 
+      if(message.unhandledFail){
+        PromisePiper.messageResolvers[message.call].reject(message.data);
+        delete PromisePiper.messageResolvers[message.call];
+        return {then:function(){}};
+      }
 
       PromisePiper.messageResolvers[message.call].resolve(message.data);
       delete PromisePiper.messageResolvers[message.call];
@@ -206,7 +212,14 @@ function PromisePiperFactory(){
     var newChain = chain.slice(ids.indexOf(message.chains[0]), ids.indexOf(message.chains[1]) + 1);
 
     newChain = newChain.map(bindTo(context).bindIt);
-    return doit(newChain, message.data, {_id: message.pipe}, context);
+
+    //catch inside env
+    function unhandledCatch(data){
+      message.unhandledFail = data;
+      return data;
+    }
+
+    return doit(newChain, message.data, {_id: message.pipe}, context).catch(unhandledCatch);
   }
 
   PromisePiper.createTransitionMessage = function createTransitionMessage(data, context, pipeId, chainId, envBackChainId, callId){

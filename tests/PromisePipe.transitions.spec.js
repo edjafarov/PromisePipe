@@ -119,3 +119,67 @@ describe('PromisePipe when comes to chains from other env', function(){
 		})
 	})
 })
+
+
+describe('PromisePipe when comes to chains from other env', function(){
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
+	PromisePipeServer.setEnv('server');
+	var context = {};
+	var data1 = 1;
+	var data2 = 2;
+	var fn1 = sinon.stub();
+	var fn2 = sinon.stub();
+	var fn3 = sinon.stub();
+	var fn4 = sinon.stub();
+	var fn5 = sinon.stub();
+
+	fn2._env = 'server';
+	fn3._env = 'server';
+	var finish = sinon.spy();
+
+	fn1.withArgs(data1, context).returns(data1);
+		fn2.withArgs(data1).returns(Promise.reject("failTest"));
+	fn3.withArgs(data2).returns(data2);
+	fn4.withArgs(data1, context).returns(data1);
+	fn4.withArgs(data2, context).returns(data2);
+
+
+	var pipe = PromisePipe()
+			.then(fn1)
+			.then(fn2)
+			.then(fn3)
+			.then(fn4)
+			.catch(fn5);
+
+	var pipeServer = PromisePipeServer()
+			.then(fn1)
+			.then(fn2)
+			.then(fn3)
+			.then(fn4)
+			.catch(fn5);
+
+	describe('should fail back to client', function(){
+		before(function(done){
+			PromisePipe.envTransition('client', 'server', function(message){
+				var innerMsg = JSON.parse(JSON.stringify(message));
+				PromisePipeServer.execTransitionMessage(innerMsg).then(function(data){
+					var ininnerMsg = JSON.parse(JSON.stringify(innerMsg));
+					ininnerMsg.data = data;
+					PromisePipe.execTransitionMessage(ininnerMsg);
+				})
+				return PromisePipe.promiseMessage(message);
+			})
+			pipe(data1, context).then(finish);
+			done()
+		})
+		it('transition should be caught by client"s catch', function(){
+			sinon.assert.calledOnce(fn1);
+			sinon.assert.calledOnce(fn2);
+			sinon.assert.notCalled(fn3)
+			sinon.assert.notCalled(fn4);
+			sinon.assert.calledOnce(fn5);
+			sinon.assert.calledWith(fn5, 'failTest');
+		})
+	})
+})
