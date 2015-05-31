@@ -111,21 +111,21 @@ function PromisePiperFactory(){
   function wrapPromise(transObject, sequence, result){
     return function(){
       var args = [].slice.call(arguments);
-      var resFun = function(data, context){
+      //TODO: try to use .bind here
+      var wrappedFunction = function(data, context){
         var argumentsToPassInside = [data, context].concat(args);
         return transObject.apply(result, argumentsToPassInside);
       };
-      resFun.isCatch = transObject.isCatch;
-      var arr = resFun;
-      arr._id = ID();
-      sequence.push(arr);
+      wrappedFunction.isCatch = transObject.isCatch;
+      wrappedFunction._id = ID();
+      sequence.push(wrappedFunction);
       return result;
     }
   }
+
   // PromisePipe is a singleton
   // that knows about all pipes and you can get a pipe by ID's
   PromisePiper.pipes = {};
-
   // the ENV is a client by default
   PromisePiper.env = 'client';
 
@@ -244,21 +244,25 @@ function PromisePiperFactory(){
 
   // build a chain of promises
   function doit(sequence, data, pipe, ctx){
+    function getChainIndexById(id){
+      return sequence.map(function(el){
+        return el._id
+      }).indexOf(id)
+    }
 
+    function getIndexOfNextEnvAppearance(fromIndex, env){
+      return sequence.map(function(el){
+        return el._env;
+      }).indexOf(env, fromIndex);
+    }
     return sequence.reduce(function(doWork, funcArr){
-
       //get into other env first time
       if(ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id))) {
 
-        var firstChainN = sequence.map(function(el){
-          return el._id
-        }).indexOf(funcArr._id);
+        var firstChainN = getChainIndexById(funcArr._id);
 
-        var lastChain = sequence.map(function(el){
-          return el._env;
-        }).indexOf(PromisePiper.env, firstChainN );
-
-        lastChain = (lastChain == -1)?(sequence.length - 1):(lastChain - 1);
+        var lastChain = getIndexOfNextEnvAppearance(firstChainN, PromisePiper.env);
+        lastChain = (lastChain==-1)?(sequence.length - 1):(lastChain - 1);
 
         ctx._passChains = sequence.map(function(el){
           return el._id

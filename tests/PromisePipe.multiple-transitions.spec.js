@@ -215,9 +215,9 @@ describe('PromisePipe when comes to chains from other env', function(){
 	});
 
 	fn2._env = 'server';
-	fn3._env = 'server';
-	fn4._env = 'server';
-	fn5._env = 'server';
+	fn3._env = 'worker';
+	fn4._env = 'worker';
+	fn5._env = 'worker';
 
 	var finish = sinon.spy();
 
