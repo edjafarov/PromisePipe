@@ -1,5 +1,5 @@
-var Promise = require('es6-promise').Promise;
-
+var Promise = Promise || require('es6-promise').Promise;
+var stackTrace = require('stacktrace-js');
 
 function augumentContext(context, property, value){
   Object.defineProperty(context, property, {
@@ -287,7 +287,7 @@ function PromisePiperFactory(){
             return PromisePiper.envTransitions[ctx._env][funcArr._env].call(this, msg);
           }
 
-          return doWork.then.apply(doWork, [newArgFunc]);
+          return doWork.then(newArgFunc);
         } else{
           throw new Error("there is no transition " + ctx._env + " to " + funcArr._env);
         }
@@ -296,15 +296,29 @@ function PromisePiperFactory(){
         var newArgFunc = function(data){
           return data;
         }
-        return doWork.then.apply(doWork, [newArgFunc]);
+        return doWork.then(newArgFunc);
       }
       // if next promise is catch
       if(funcArr && funcArr.isCatch) {
-        return doWork.catch.apply(doWork, [funcArr]); //do catch
+        return doWork.catch(funcArr); //do catch
       }
 
 
-      return doWork.then.apply(doWork, [funcArr]);
+      //it shows error in console and passes it down
+      function errorEnhancer(data){
+        //is plain Error and was not yet caught
+        if(data instanceof Error && !data.caughtOnChainId){
+          data.caughtOnChainId = funcArr._id;
+
+          var trace = stackTrace({e: data});
+          if(funcArr._name) {console.log("Failed inside " + funcArr._name)}
+          console.log(data.toString())
+          console.log(trace.join("\n"));
+        }
+        return Promise.reject(data);
+      }
+      return doWork.then(funcArr).catch(errorEnhancer);
+
     }, Promise.resolve(data));
   }
 
@@ -315,7 +329,7 @@ function PromisePiperFactory(){
         var newArgFunc = function(data){
           return handler.call(that, data, that);
         }
-
+        newArgFunc._name = handler.name;
         Object.keys(handler).reduce(function(funObj, key){
           funObj[key] = handler[key]
           return funObj;

@@ -1,28 +1,29 @@
 {
-	"name": "promise-pipe",
-	"version": "0.0.14",
-	"description": "##install",
-	"main": "src/PromisePipe.js",
-	"scripts": {
-		"test": "node node_modules/mocha/bin/mocha ./tests/**/*.spec.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/edjafarov/PromisePipe.git"
-	},
-	"author": "",
-	"license": "ISC",
-	"bugs": {
-		"url": "https://github.com/edjafarov/PromisePipe/issues"
-	},
-	"homepage": "https://github.com/edjafarov/PromisePipe",
-	"dependencies": {
-		"es6-promise": "~2.0.1"
-	},
-	"devDependencies": {
-		"chai": "~2.0.0",
-		"sinon": "~1.12.2",
-		"mocha": "~2.1.0",
-		"es6-promise": "~2.0.1"
-	}
+  "name": "promise-pipe",
+  "version": "0.0.15",
+  "description": "##install",
+  "main": "src/PromisePipe.js",
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha ./tests/**/*.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/edjafarov/PromisePipe.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/edjafarov/PromisePipe/issues"
+  },
+  "homepage": "https://github.com/edjafarov/PromisePipe",
+  "dependencies": {
+    "es6-promise": "~2.0.1",
+    "stacktrace-js": "^0.6.4"
+  },
+  "devDependencies": {
+    "chai": "^2.3.0",
+    "es6-promise": "~2.0.1",
+    "mocha": "~2.1.0",
+    "sinon": "~1.12.2"
+  }
 }
