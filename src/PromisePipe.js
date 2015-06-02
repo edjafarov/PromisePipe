@@ -126,11 +126,36 @@ function PromisePiperFactory(){
   // PromisePipe is a singleton
   // that knows about all pipes and you can get a pipe by ID's
   PromisePiper.pipes = {};
-  // the ENV is a client by default
-  PromisePiper.env = 'client';
 
+
+  /*
+  * setting up env for pipe
+  */
   PromisePiper.setEnv = function(env){
     PromisePiper.env = env;
+  };
+
+  // the ENV is a client by default
+  PromisePiper.setEnv('client');
+
+
+  /*
+  * Is setting up function to be executed inside specific ENV
+  * usage:
+  * var doOnServer = PromisePipe.in('server');
+  * PromisePipe().then(doOnServer(fn));
+  * or
+  * PromisePipe().then(PromisePipe.in('worker').do(fn));
+  */
+  PromisePiper.in = function(env){
+    if(!env) throw new Error('You should explicitly specify env');
+    var result = function makeEnv(fn){
+      return fn._env = env;
+    }
+    result.do = function doIn(fn){
+      return fn._env = env;
+    }
+    return result;
   };
 
   PromisePiper.envTransitions = {};
