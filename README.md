@@ -111,7 +111,28 @@ As in Promises you can pass two functions inside for success and fail.
 var pipe = PromisePipe()
 .then(function(data, context){
   return //Promise.resolve/reject
-}).then(success, fail)
+})
+.then(success)
+.catch(fail)
+```
+###Pipe:all
+As in Promises you can compose promise pipes
+```javascript
+var pipe = PromisePipe()
+.then(fn1)
+.then(fn2)
+.all(
+  PromisePipe()
+  .then(fnasync11)
+  .then(fnasync21)
+  .then(fnasync31)
+
+  ,PromisePipe()
+  .then(fnasync12)
+  .then(fnasync22)
+  .then(fnasync32)  
+)
+.then(fnEnd)
 ```
 ###Pipe:catch
 The catch is taking single argument and bahaves same as Promise catch.

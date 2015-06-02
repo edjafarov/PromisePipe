@@ -70,7 +70,7 @@ describe('PromisePipe with 3 functions when called', function(){
 });
 
 
-describe('PromisePipe error handling', function(){
+describe('PromisePipe simple error handling', function(){
 	var context = {};
 	var data1 = 1;
 	var data2 = 2;
@@ -368,6 +368,94 @@ describe('PromisePipe composition 2 functions, and 2nd will be separate PromisPi
 		})
 	})
 });
+
+
+
+
+
+describe('PromisePipe with 3 functions when called', function(){
+	var PromisePipe = require('../src/PromisePipe')();
+	var context = {};
+	var data1 = 1;
+	var data2 = 2;
+	var data3 = 3;
+	var fn1 = sinon.stub();
+	var fn2 = sinon.stub();
+	var fn3 = sinon.stub();
+
+	var fn11 = sinon.stub();
+	var fn12 = sinon.stub();
+	var fn13 = sinon.stub();
+
+	var fn21 = sinon.stub();
+	var fn22 = sinon.stub();
+	var fn23 = sinon.stub();
+
+	var fn31 = sinon.stub();
+	var fn32 = sinon.stub();
+	var fn33 = sinon.stub();
+
+	var fnEnd = sinon.stub();
+
+
+	var finish = sinon.spy();
+
+	fn1.withArgs(data1, context).returns(data2);
+	fn2.withArgs(data2, context).returns(data3);
+	fn3.withArgs(data3, context).returns(data1);
+
+	fn11.withArgs(data1, context).returns(data2);
+	fn12.withArgs(data2, context).returns(data3);
+	fn13.withArgs(data3, context).returns(data1);
+
+	fn21.withArgs(data1, context).returns(data2);
+	fn22.withArgs(data2, context).returns(data3);
+	fn23.withArgs(data3, context).returns(data2);
+
+	fn31.withArgs(data1, context).returns(data2);
+	fn32.withArgs(data2, context).returns(data3);
+	fn33.withArgs(data3, context).returns(data3);
+
+	fnEnd.withArgs([data1,data2,data3], context).returns(data2);
+
+	var pipe = PromisePipe()
+			.then(fn1)
+			.then(fn2)
+			.then(fn3)
+			.all(
+				PromisePipe()
+				.then(fn11)
+				.then(fn12)
+				.then(fn13)
+				,PromisePipe()
+				.then(fn21)
+				.then(fn22)
+				.then(fn23)
+				,PromisePipe()
+				.then(fn31)
+				.then(fn32)
+				.then(fn33)
+			).then(fnEnd);
+
+	before(function(done){
+		pipe(data1, context).then(finish);
+		done()
+	})
+	it('should pass up to the end of chain', function(){
+		sinon.assert.calledOnce(fn1);
+		sinon.assert.calledWithExactly(fn1, data1, context);
+		sinon.assert.calledOnce(fn2);
+		sinon.assert.calledWithExactly(fn2, data2, context);
+		sinon.assert.calledOnce(fn3);
+		sinon.assert.calledWithExactly(fn3, data3, context);
+		sinon.assert.calledOnce(finish);
+		sinon.assert.calledWithExactly(finish, data2);
+	});
+});
 /*
 TODO: test errohandling
+// fix context for the case
+// error handling
+// swithch between envs
+// switch between envs within single .all
 */

@@ -65,6 +65,19 @@ function PromisePiperFactory(){
       sequence.push(fn);
       return result;
     }
+
+    result.all = function(){
+      //TODO: check how is this thing floating between envs
+      var pipes = [].slice.call(arguments);
+      var fn = function (data, context){
+        return Promise.all(pipes.map(function(pipe){
+          return pipe(data, context);
+        }))
+      }
+      if(!fn._id) fn._id = ID();
+      sequence.push(fn);
+      return result;
+    }
     // join pipes
     result.join = function(){
       var pipers = [].slice.call(arguments);
