@@ -1,4 +1,5 @@
-var PromisePipe = require('promise-pipe')();
+var PromisePipe = require('../../src/PromisePipe')();
+PromisePipe.setMode('DEBUG');
 var Promise = require('es6-promise').Promise;
 var MongoPipeApi = require('mongo-pipe-api');
 

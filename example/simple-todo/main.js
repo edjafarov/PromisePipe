@@ -1,5 +1,6 @@
-var PromisePipe = require('promise-pipe')();
+var PromisePipe = require('../../src/PromisePipe')();
 var Promise = require('es6-promise').Promise;
+PromisePipe.setMode('DEBUG');
 var ENV = 'CLIENT';
 //set up server
 if(typeof(window) !== 'object'){

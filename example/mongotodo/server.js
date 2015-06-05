@@ -12,11 +12,11 @@ var MongoStore = require('connect-mongo')(expressSession);
 var myCookieParser = cookieParser('secret');
 
 var sessionStore = new MongoStore({
-	url: process.env.MONGOHQ_URL || "mongodb://localhost:27017/test" 
+	url: process.env.MONGOHQ_URL || "mongodb://localhost:27017/test"
 });
 server.listen(process.env.PORT || 3000)
 
-console.log("check localhost:" + process.env.PORT||3000);
+console.log("check localhost:" + process.env.PORT || 3000);
 
 var PromisePipe = main.PromisePipe;
 

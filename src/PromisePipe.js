@@ -1,5 +1,7 @@
 var Promise = Promise || require('es6-promise').Promise;
 var stackTrace = require('stacktrace-js');
+var serialize = require('json-stringify-safe');
+
 
 function augumentContext(context, property, value){
   Object.defineProperty(context, property, {
@@ -11,14 +13,16 @@ function augumentContext(context, property, value){
 }
 
 
-// cleanup PromisePipe call ID/and env at the Pipe end
-function cleanup(data, context){
-  delete context._pipecallId;
-  delete context._env;
-  return data;
-}
+
 
 function PromisePipeFactory(){
+
+  // cleanup PromisePipe call ID/and env at the Pipe end
+  function cleanup(data, context){
+    delete context._pipecallId;
+    delete context._env;
+    return data;
+  }
 
   function doOnPipeEnv(item){
     item._id = ID();
@@ -36,9 +40,14 @@ function PromisePipeFactory(){
       augumentContext(context, '_pipecallId', Math.ceil(Math.random()*Math.pow(10,16)));
       // set current PromisePipe env
       augumentContext(context, '_env', PromisePipe.env);
+      var _trace = {};
+      _trace[context._pipecallId] = [];
+      augumentContext(context, '_trace', _trace);
 
-
-      var chain = [].concat(sequence, [doOnPipeEnv(cleanup)]);
+      var toConcat = [sequence];
+      if(PromisePipe._mode == 'DEBUG') toConcat.push([doOnPipeEnv(printDebug)]);
+      toConcat.push([doOnPipeEnv(cleanup)]);
+      var chain = [].concat.apply([], toConcat);
 
       chain = chain.map(bindTo(context).bindIt.bind(result)).map(function(fn){
         if(!fn._env) fn._env = PromisePipe.env;
@@ -46,6 +55,44 @@ function PromisePipeFactory(){
       });
       // run the chain
       return doit(chain, data, result, context);
+    }
+
+    function printDebug(data, context){
+      var ln = context._trace[context._pipecallId].length;
+      printDebugChain(context._trace[context._pipecallId].slice(0, ln-1))
+      return data;
+    }
+
+    function printDebugChain(traceLog){
+      var seqIds = sequence.map(function(fn){
+        return fn._id;
+      });
+      if(console.group){
+        showLevel(0, traceLog);
+        function showLevel(i, traceLog){
+          var item = traceLog[i];
+          var fnId = seqIds.indexOf(item.chainId);
+          var name = '';
+          if(!!~fnId) name = sequence[fnId].name || sequence[fnId]._name;
+          console.group(".then("+name+")");
+          console.log("data", item.data && JSON.parse(item.data));
+          console.log("context", JSON.parse(item.context));
+          if(traceLog[i + 1]) showLevel(i+1, traceLog);
+          console.groupEnd(".then("+name+")");
+        }
+      } else {
+        traceLog.forEach(function(item, i){
+          var shift = new Array(i*4+1).join(" ");
+          var fnId = seqIds.indexOf(item.chainId);
+          var name = '';
+          if(!!~fnId) name = sequence[fnId].name;
+
+          console.log(shift + ".then("+name+")");
+          console.log(shift + "    data    : " + JSON.stringify(item.data));
+          console.log(shift + "    context : " + item.context);
+          return result;
+        });
+      }
     }
 
     //promise pipe ID
@@ -97,6 +144,7 @@ function PromisePipeFactory(){
     // add API extensions for the promisepipe
     result = Object.keys(PromisePipe.transformations).reduce(function(thePipe, name){
       var customApi = PromisePipe.transformations[name];
+      customApi._name = name;
       if(typeof(customApi) == 'object'){
         thePipe[name] = wrapObjectPromise(customApi, sequence, result);
       } else {
@@ -112,6 +160,7 @@ function PromisePipeFactory(){
     return Object.keys(customApi).reduce(function(api, apiname){
       if(apiname.charAt(0) == "_") return api;
       customApi[apiname]._env = customApi._env;
+      customApi[apiname]._name = customApi._name +"."+ apiname;
       if(typeof(customApi[apiname]) == 'object'){
         api[apiname] = wrapObjectPromise(customApi[apiname], sequence, result);
       } else {
@@ -129,6 +178,8 @@ function PromisePipeFactory(){
         var argumentsToPassInside = [data, context].concat(args);
         return transObject.apply(result, argumentsToPassInside);
       };
+      wrappedFunction._name = transObject._name;
+      wrappedFunction._env = transObject._env;
       wrappedFunction.isCatch = transObject.isCatch;
       wrappedFunction._id = ID();
       sequence.push(wrappedFunction);
@@ -140,6 +191,14 @@ function PromisePipeFactory(){
   // that knows about all pipes and you can get a pipe by ID's
   PromisePipe.pipes = {};
 
+  PromisePipe._mode = 'PROD';
+  /**
+  * DEBUG/TEST/PROD
+  *
+  */
+  PromisePipe.setMode = function(mode){
+    PromisePipe._mode = mode;
+  }
 
   /*
   * setting up env for pipe
@@ -225,6 +284,8 @@ function PromisePipeFactory(){
         return ctx;
       }, PromisePipe.messageResolvers[message.call].context);
 
+      PromisePipe.messageResolvers[message.call].context._trace[message.call] = message._trace[message.call];
+
       if(message.unhandledFail){
         PromisePipe.messageResolvers[message.call].reject(message.data);
         delete PromisePipe.messageResolvers[message.call];
@@ -235,10 +296,14 @@ function PromisePipeFactory(){
       delete PromisePipe.messageResolvers[message.call];
       return {then:function(){}};
     }
+
     var context = message.context;
     context._env = PromisePipe.env;
     delete context._passChains;
 
+    //get back contexts non enumerables
+    augumentContext(context, '_pipecallId', message.call)
+    augumentContext(context, '_trace', message._trace)
 
     var sequence = PromisePipe.pipes[message.pipe];
     var chain = [].concat(sequence);
@@ -266,7 +331,8 @@ function PromisePipeFactory(){
       context: context,
       pipe: pipeId,
       chains: [chainId, envBackChainId],
-      call: callId
+      call: callId,
+      _trace: context._trace
     }
   }
   /*
@@ -365,7 +431,28 @@ function PromisePipeFactory(){
   function bindTo(that){
     return {
       bindIt: function bindIt(handler){
+
         var newArgFunc = function(data){
+
+          // advanced debugging
+          if(PromisePipe._mode == 'DEBUG'){
+            if(that._pipecallId && that._trace){
+              var joinedContext = getProtoChain(that)
+                .reverse()
+                .reduce(join, {});
+              var cleanContext = JSON.parse(serialize(joinedContext))
+              //should be hidden
+              delete cleanContext._passChains;
+              that._trace[that._pipecallId].push({
+                chainId: handler._id,
+                data: serialize(data),
+                context: JSON.stringify(cleanContext),
+                timestamp: Date.now()
+              })
+            }
+          }
+
+
           return handler.call(that, data, that);
         }
         newArgFunc._name = handler.name;
@@ -378,7 +465,19 @@ function PromisePipeFactory(){
     }
   }
 
+  function join(result,  obj){
+    Object.keys(obj).forEach(function(key){
+      result[key] = obj[key];
+    })
+    return result;
+  }
 
+  function getProtoChain(obj, result){
+    if(!result) result = [];
+    result.push(obj);
+    if(obj.__proto__) return getProtoChain(obj.__proto__, result);
+    return result;
+  }
 
 
 
@@ -397,16 +496,14 @@ function PromisePipeFactory(){
 
 module.exports = PromisePipeFactory;
 
+
+
+
+
 /*
 [ ] TODO: create urtility to make easier env specific
     context augumenting.
     The problem is that on server we should have more information
     inside context. Like session or other stuff. Or maybe not?
 [ ] TODO
-
-PromiseSocketServer
-
-PromisePipe.setMode('PROD');
-PromisePipe.setMode('DEBUG');
-PromisePipe.setMode('TEST');
 */
