@@ -221,11 +221,11 @@ function clientHandler(message){
   PromisePipe.execTransitionMessage(message);
 }
 ```
-###PromisePipe.localContext(context)
-With serverside you would probably need to have some isolated context like session that should not be accessible on client. You can extend the context for some of environments
+###PromisePipe.localContext(context) : PromisePipeWithContext
+With serverside you would probably need to have some isolated context like session that should not be accessible on client. You can extend the context for environment. [(Usage Eaxmple)](https://github.com/edjafarov/PromisePipe/blob/20661a4cc5ee14062bd9d4e4b106ff1b69ee8ebc/example/mongotodo/server.js#L39)
 
+#### PromisePipeWithContext.execTransitionMessage(message)
+The message will be executed with access to additional context.
 
-#### PromisePipe.localContext(context).execTransitionMessage(message)
-
-#### PromisePipe.localContext(context).wrap(fn)
-
+#### PromisePipeWithContext.wrap(fn)
+The function will be executed with access to additional context.
