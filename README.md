@@ -155,8 +155,8 @@ var pipe2 = PromisePipe()
 pipe2(1) //4
 ```
 
-###PromisePipe.use(name, handler)
-Allows to build your own customized DSL. ```handler``` is a function with arguments
+##PromisePipe.use(name, handler)
+Allows to build your own customized DSL. `handler` is a function with at least 2 arguments data and context as in simple chain.
 
 ```javascript
 function handler(data, context, arg1, ..., argN){
@@ -168,40 +168,64 @@ PromisePipe.use('custom', handler);
 PromisePipe().custom(arg1, ..., argN)
 ```
 
-###Transitions
-If the PromisePipe live on several environments you should describe how to pass the message between environments. Following methods are built for that.
+Other arguments `arg1, ..., argN` are used to additionally modify the chain behavior. For example we can build smarter `log()` method:
 
-###PromisePipe.envTransition(from, to, handler)
-
-###PromisePipe.execTransitionMessage(message)
-
-###PromisePipe.localContext(context)
-
-#### PromisePipe.localContext(context).execTransitionMessage(message)
-
-#### PromisePipe.localContext(context).wrap(fn)
-
-
-
-
-##extend
-
-You can extend ```PromisePipe``` API with additional methods. Thus you are able to build your own customized DSL.
 ```javascript
 var PromisePipe = require('promise-pipe')();
 
 PromisePipe.use('log', function(data, context, name){
   if(name) {
-      console.log(data[name]);
-    } else {
-      console.log(data)
-    }
-    return data;
+    console.log(data[name]);
+  } else {
+    console.log(data)
+  }
+  return data;
 })
 
-var action = PromisePipe().log().log('foo');
+var action = PromisePipe()
+			  .log()
+              .log('foo');
 
 action({foo:"baz", bar:"xyz"})
 // {foo:"baz", bar:"xyz"} <- log()
 // baz <- log('foo')
 ```
+
+##Transitions
+When the PromisePipe is running on several environments and the execution comes to a chain marked to be executed on other environment PromisePipe tries to pass a message to that environment. To make it work you should describe how to pass the message between environments. Following methods are built for that.
+
+###PromisePipe.envTransition(from, to, handler)
+Setting transition of a message between environments. `from` and `to` are environments names. For example 'client' and 'server'. `handler` is a function that passes the message to other env and returns a `PromisePipe.promiseMessage(message)`. PromiseMessage is used to watch the call to be back from server.
+
+```javascript
+PromisePipe.envTransition('client', 'server', function(message){
+  // here you need to put a logic that sends message to server env
+  return PromisePipe.promiseMessage(message);
+})
+```
+###PromisePipe.execTransitionMessage(message)
+The message created in `PromisePipe.envTransition` comes to another env and must be executed here. When the message is prepared you need to execute it on a PromisePipe. It will resolve what chains it need to execute and will return a Promise that you need to handle and return updated message back to client.
+
+```javascript
+function serverHandler(message){
+  PromisePipe.execTransitionMessage(message).then(function(data){
+	message.data = data;
+    //sendToClient(message);
+  });
+}
+```
+On client you would also need to execute the message that comes back:
+
+```javascript
+function clientHandler(message){
+  PromisePipe.execTransitionMessage(message);
+}
+```
+###PromisePipe.localContext(context)
+With serverside you would probably need to have some isolated context like session that should not be accessible on client. You can extend the context for some of environments
+
+
+#### PromisePipe.localContext(context).execTransitionMessage(message)
+
+#### PromisePipe.localContext(context).wrap(fn)
+
