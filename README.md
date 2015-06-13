@@ -2,29 +2,31 @@
 
 #PromisePipe - reusable promise chains
 
-PromisePipe allows to build a reusable Promise chain with custom API. Promise pipe returns a function which you can call multiple times and each time all chains will be called and the result of the function would be a promise.
+PromisePipe allows to build a reusable Promise chains. It returns a function which you can call multiple times and each time all chains will be called. The Function returns a promise each time you call it.
 
 ```javascript
-var pipe = PromisePipe().then(doSmth).then(doSmthElse);
+var pipe = PromisePipe()
+			.then(doSmth)
+            .then(doSmthElse);
 
 var result = pipe(1); // calls doSmth, doSmthElse and returns a promise
 // result is a Promise
 
 ```
 
-PromisePipe is built with small API and ability to extend API with custom methods. You can build your specific API that describes your business logic better.
+PromisePipe is built with small core API. It can be extended with custom methods. You can build your domain specific API that describes your business logic.
 
 ```javascript
 var saveEventItem = PromisePipe()
-.validateItem(validationScheme)
-.saveItem()
-.updateItem()
-.catchError('item:add:reject')
+  .validateItem(validationScheme)
+  .saveItem()
+  .updateItem()
+  .catchError('item:add:reject')
 ```
 
-PromisePipe can live on client and server simultaneously allowing to describe business logic completely instead of thinking about client/server communication.
+PromisePipe is a singleton. You build chains of business logic and run the code both on server and client. Chains marked to be executed on the server will be executed on the server only and chains marked to be executed in the client will be executed in the client. You need to set methods in PromisePipe to pass messages from the client to the server. And it is up to you what transport to use.
 
-![](http://g.recordit.co/0jVhHM2rOW.gif)
+![](http://g.recordit.co/Ck1tyZ5qA8.gif)
 
 check simple [todo app](https://github.com/edjafarov/PromisePipe/tree/master/example/simple-todo)
 
@@ -34,29 +36,124 @@ and [todo with mongodb and session](https://github.com/edjafarov/PromisePipe/tre
 
 npm install promise-pipe
 
-##extend
 
-You can extend ```PromisePipe``` API with additional methods. Thus you are able to build your own customized DSL.
+# Getting Started
+
+The core API mimics api of Promise. So it should be pretty obvious how to use it. Additionally with `data` that is returned from previous chain as first argument each function have access to `context` object.
+
 ```javascript
-var PromisePipe = require('promise-pipe')();
+var PromisePipe = require('promise-pipe')(); //create a PromisePipe singleton
 
-PromisePipe.use('log', function(data, context, name){
-  if(name) {
-      console.log(data[name]);
-    } else {
-      console.log(data)
-    }
-    return data;
-})
+var someChain = function someChain(data, context){
+  // do data transformations
+  // change context
+  return data; //pass data to next chain
+}
 
-var action = PromisePipe().log().log('foo');
+var someAsyncChain = function someAsyncChain(data, context){
+  return new Promise(function(resolve, reject){ //use Promise for async transformations
+    // do data transformations
+	// change context
+    resolve(data) || reject(err)
+  });
+}
 
-action({foo:"baz", bar:"xyz"})
-// {foo:"baz", bar:"xyz"} <- log()
-// baz <- log('foo')
+var handleError = function handleError(err, context){
+  //handle error
+  //change context
+  return err;
+}
+
+var newPipe = PromisePipe()
+  .then(someChain)
+  .then(someAsyncChain)
+  .catch(handleError);
+
+var context = {};
+var data = 1;
+
+newPipe(data, context).then(function(result){
+  //result is a result of the chain
+});
 ```
-##API
-###PromisePipe
+
+#Core API
+
+##PromisePipe() : pipe
+
+###pipe : Promise
+Is a constructed pipe that returns a promise. First argument is a data, second is a context. While `data` behaves the same way as in Promises `context` is passing thorough whole chain of promises.
+
+```javascript
+var pipe = PromisePipe()
+.then(function(data, context){
+  console.log(data, context);
+    context.foo = "bar";
+  return data + 1;
+}).then(function(data, context){
+  console.log(data, context);
+    context.xyz = "baz";
+  return data + 1;
+}).then(function(data, context){
+  console.log(data, context);
+})
+pipe(2, {});
+//2 {}
+//3 {foo:"bar"}
+//4 {foo:"bar", xyz:"baz"}
+```
+###pipe.then
+`.then` adds a simple chain to the pipe
+```javascript
+var pipe = PromisePipe()
+.then(function(data, context){
+  return //Promise.resolve/reject
+})
+.then(success)
+.catch(fail)
+```
+###pipe.all
+As in Promises you can compose promise pipes
+```javascript
+var pipe = PromisePipe()
+.then(fn1)
+.then(fn2)
+.all(
+  PromisePipe()
+  .then(fnasync11)
+  .then(fnasync21)
+  .then(fnasync31)
+
+  ,PromisePipe()
+  .then(fnasync12)
+  .then(fnasync22)
+  .then(fnasync32)
+)
+.then(fnEnd)
+```
+###pipe.catch
+The catch is catching error or reject of previous chains. Behaves as Promise catch.
+
+###pipe.join
+You can join PromisePipes if you like.
+
+```javascript
+var pipe = PromisePipe()
+.then(function(data, context){
+  return data + 1;
+});
+
+var pipe2 = PromisePipe()
+.then(function(data, context){
+  return data + 2;
+})
+.join(pipe)
+.then(function(data){
+  console.log(data);
+});
+
+pipe2(1) //4
+```
 
 ###PromisePipe.use(name, handler)
 Allows to build your own customized DSL. ```handler``` is a function with arguments
@@ -84,75 +181,27 @@ If the PromisePipe live on several environments you should describe how to pass 
 
 #### PromisePipe.localContext(context).wrap(fn)
 
-###Pipe
-Is a function that returns a promise. First argument is a data, second is a context. While `data` behaves the same way as in Promises `context` is passing thorough whole chain of promises.
 
+
+
+##extend
+
+You can extend ```PromisePipe``` API with additional methods. Thus you are able to build your own customized DSL.
 ```javascript
-var pipe = PromisePipe()
-.then(function(data, context){
-  console.log(data, context);
-    context.foo = "bar";
-  return data + 1;
-}).then(function(data, context){
-  console.log(data, context);
-    context.xyz = "baz";
-  return data + 1;
-}).then(function(data, context){
-  console.log(data, context);
+var PromisePipe = require('promise-pipe')();
+
+PromisePipe.use('log', function(data, context, name){
+  if(name) {
+      console.log(data[name]);
+    } else {
+      console.log(data)
+    }
+    return data;
 })
-pipe(2, {});
-//2 {}
-//3 {foo:"bar"}
-//4 {foo:"bar", xyz:"baz"}
-```
-###Pipe:then
-As in Promises you can pass two functions inside for success and fail.
-```javascript
-var pipe = PromisePipe()
-.then(function(data, context){
-  return //Promise.resolve/reject
-})
-.then(success)
-.catch(fail)
-```
-###Pipe:all
-As in Promises you can compose promise pipes
-```javascript
-var pipe = PromisePipe()
-.then(fn1)
-.then(fn2)
-.all(
-  PromisePipe()
-  .then(fnasync11)
-  .then(fnasync21)
-  .then(fnasync31)
 
-  ,PromisePipe()
-  .then(fnasync12)
-  .then(fnasync22)
-  .then(fnasync32)  
-)
-.then(fnEnd)
-```
-###Pipe:catch
-The catch is taking single argument and bahaves same as Promise catch.
+var action = PromisePipe().log().log('foo');
 
-###Pipe:join
-You can join PromisePipes if you like.
-
-```javascript
-var pipe = PromisePipe()
-.then(function(data, context){
-  return data + 1;
-});
-var pipe2 = PromisePipe()
-.then(function(data, context){
-  return data + 2;
-})
-.join(pipe)
-.then(function(data){
-  console.log(data);
-});
-
-pipe2(1) //4
+action({foo:"baz", bar:"xyz"})
+// {foo:"baz", bar:"xyz"} <- log()
+// baz <- log('foo')
 ```
