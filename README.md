@@ -14,7 +14,7 @@ var result = pipe(1); // calls doSmth, doSmthElse and returns a promise
 
 ```
 
-PromisePipe is built with small core API. It can be extended with custom methods. You can build your domain specific API that describes your business logic.
+PromisePipe is built with small core API. It can be [extended](#promisepipeusename-handler) with custom methods. You can build your domain specific API that describes your business logic.
 
 ```javascript
 var saveEventItem = PromisePipe()
@@ -24,7 +24,7 @@ var saveEventItem = PromisePipe()
   .catchError('item:add:reject')
 ```
 
-PromisePipe is a singleton. You build chains of business logic and run the code both on server and client. Chains marked to be executed on the server will be executed on the server only and chains marked to be executed in the client will be executed in the client. You need to set methods in PromisePipe to pass messages from the client to the server. And it is up to you what transport to use.
+PromisePipe is a singleton. You build chains of business logic and run the code both on server and client. Chains marked to be executed on the server will be executed on the server only and chains marked to be executed in the client will be executed in the client. You need to [set methods](#transitions) in PromisePipe to pass messages from the client to the server. And it is up to you what transport to use.
 
 ![](http://g.recordit.co/Ck1tyZ5qA8.gif)
 
