@@ -26,7 +26,7 @@ var saveEventItem = PromisePipe()
 
 PromisePipe is a singleton. You build chains of business logic and run the code both on server and client. Chains marked to be executed on the server will be executed on the server only and chains marked to be executed in the client will be executed in the client. You need to [set methods](#transitions) in PromisePipe to pass messages from the client to the server. And it is up to you what transport to use.
 
-![](http://g.recordit.co/Ck1tyZ5qA8.gif)
+![promisepipeExample](http://g.recordit.co/Ck1tyZ5qA8.gif)
 
 check simple [todo app](https://github.com/edjafarov/PromisePipe/tree/master/example/simple-todo)
 
@@ -194,6 +194,30 @@ action({foo:"baz", bar:"xyz"})
 ##Transitions
 When the PromisePipe is running on several environments and the execution comes to a chain marked to be executed on other environment PromisePipe tries to pass a message to that environment. To make it work you should describe how to pass the message between environments. Following methods are built for that.
 
+###PromisePipe.setEnv
+With `.setEnv` method you are setting environment for the PromisePipe. All methods marked same as the pipe will be executed only in this environment.
+```
+if(typeof(window) !== 'object'){
+  PromisePipe.setEnv('server');
+} else {
+  PromisePipe.setEnv('client');
+}
+```
+
+###PromisePipe.in
+Creates wrapper that marks chains as executable in specific environment.
+
+```javascript
+var doOnServer = PromisePipe.in('server')
+var addItemAction = PromisePipe()
+  .then(validateItem)
+  .then(doOnServer(validateItemServer)) // will be executed on server
+  .then(doOnServer(saveItemInDB)) // will be executed on server
+  .then(addItem)
+  .catch(handleError);
+addItemAction(item) // will pass complete chain
+```
+
 ###PromisePipe.envTransition(from, to, handler)
 Setting transition of a message between environments. `from` and `to` are environments names. For example 'client' and 'server'. `handler` is a function that passes the message to other env and returns a `PromisePipe.promiseMessage(message)`. PromiseMessage is used to watch the call to be back from server.
 
@@ -229,3 +253,9 @@ The message will be executed with access to additional context.
 
 #### PromisePipeWithContext.wrap(fn)
 The function will be executed with access to additional context.
+
+##Debugging
+###PromisePipe.setMode
+To set up PromisePipe in debug mode you need to call PromisePipe.setMode('DEBUG'). Then in chrome you will be able to see in console values of arguments passed inside each chain within pipe:
+
+![debuggability promisepipes](http://g.recordit.co/EywOLPXn7v.gif)
