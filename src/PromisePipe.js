@@ -74,7 +74,7 @@ function PromisePipeFactory(){
           var fnId = seqIds.indexOf(item.chainId);
           var name = '';
           if(!!~fnId) name = sequence[fnId].name || sequence[fnId]._name;
-          console.group(".then("+name+")");
+          console.group(".then("+name+")["+item.env+"]");
           console.log("data", item.data && JSON.parse(item.data));
           console.log("context", JSON.parse(item.context));
           if(traceLog[i + 1]) showLevel(i+1, traceLog);
@@ -87,7 +87,7 @@ function PromisePipeFactory(){
           var name = '';
           if(!!~fnId) name = sequence[fnId].name;
 
-          console.log(shift + ".then("+name+")");
+          console.log(shift + ".then("+name+")["+item.env+"]");
           console.log(shift + "    data    : " + JSON.stringify(item.data));
           console.log(shift + "    context : " + item.context);
           return result;
@@ -433,8 +433,8 @@ function PromisePipeFactory(){
       bindIt: function bindIt(handler){
 
         var newArgFunc = function(data){
-
           // advanced debugging
+
           if(PromisePipe._mode == 'DEBUG'){
             if(that._pipecallId && that._trace){
               var joinedContext = getProtoChain(that)
@@ -447,7 +447,8 @@ function PromisePipeFactory(){
                 chainId: handler._id,
                 data: serialize(data),
                 context: JSON.stringify(cleanContext),
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                env: that._env
               })
             }
           }
@@ -455,6 +456,7 @@ function PromisePipeFactory(){
 
           return handler.call(that, data, that);
         }
+        
         newArgFunc._name = handler.name;
         Object.keys(handler).reduce(function(funObj, key){
           funObj[key] = handler[key]
