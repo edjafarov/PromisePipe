@@ -263,6 +263,36 @@ function PromisePipeFactory(){
   // messageResolvers save the call and resoves it when message came back
   PromisePipe.messageResolvers = {};
 
+
+  PromisePipe.stream = function(from, to, processor){
+    return {
+      pipe: function(strm){
+        //set transition
+        PromisePipe.envTransition(from, to, function(message){
+          strm.send(message);
+          return PromisePipe.promiseMessage(message);
+        });
+
+        strm.listen(function(message){
+          function end(data){
+            message.data = data;
+            strm.send(message);
+          }
+          function executor(message){
+            return PromisePipe.execTransitionMessage(message);
+          }
+          if(processor){
+            return processor(data, context, executor, end);
+          }
+          return executor(message).then(end);
+        })
+      }
+    }
+  }
+
+
+
+
   PromisePipe.promiseMessage = function(message){
     return new Promise(function(resolve, reject){
       PromisePipe.messageResolvers[message.call] = {
@@ -456,7 +486,7 @@ function PromisePipeFactory(){
 
           return handler.call(that, data, that);
         }
-        
+
         newArgFunc._name = handler.name;
         Object.keys(handler).reduce(function(funObj, key){
           funObj[key] = handler[key]

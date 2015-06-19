@@ -1,15 +1,11 @@
 var work = require('webworkify');
+
+var stream = require('./WorkerDuplexStream.js')
+
 var logic = require('./logic.js')
+
 ENV = 'CLIENT';
 var w = work(require('./worker.js'));
-
-logic.pipe.envTransition('client','worker', function(message){
-  w.postMessage(message);
-  return logic.pipe.promiseMessage(message);
-})
-
-w.addEventListener('message', function (ev) {
-  logic.pipe.execTransitionMessage(ev.data);
-});
+logic.pipe.stream('client','worker').pipe(stream.ClientWorkerStream(w))
 
 module.exports = logic;
