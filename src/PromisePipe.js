@@ -274,17 +274,24 @@ function PromisePipeFactory(){
         });
 
         strm.listen(function(message){
+          var context = message.context;
+          var data = message.data;
           function end(data){
+            message.context = context;
             message.data = data;
             strm.send(message);
           }
-          function executor(message){
-            return PromisePipe.execTransitionMessage(message);
-          }
           if(processor){
-            return processor(data, context, executor, end);
+            function executor(data, context){
+              message.data = data;
+              message.context = context;
+              return PromisePipe.execTransitionMessage(message);
+            }
+            var localContext = {};
+            localContext.__proto__= context;
+            return processor(data, localContext, executor, end);
           }
-          return executor(message).then(end);
+          return PromisePipe.execTransitionMessage(message).then(end);
         })
       }
     }

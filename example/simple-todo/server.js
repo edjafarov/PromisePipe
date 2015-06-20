@@ -1,10 +1,12 @@
-var main = require('./main.js');
+var main = require('./logic.js');
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
 server.listen(3000)
+
+var stream = require('../connectors/SocketIODuplexStream');
 
 console.log("check localhost:3000");
 
@@ -26,15 +28,7 @@ var todolist = [
 	}
 ]
 
-socketPipeHandler(io);
-
-function socketPipeHandler(io){
-	io.on('connection', function (socket) {
-	  socket.on('messageToServer', function (message) {
-	    PromisePipe.localContext({todolist: todolist}).execTransitionMessage(message).then(function(data){
-	    	message.data = data;
-	    	socket.emit('messageToClient', message);
-	    })
-	  });
-	});
-}
+PromisePipe.stream('server','client', function(data, context, executor, end){
+	context.todolist = todolist;
+	executor(data, context).then(end);
+}).pipe(stream.SIOServerClientStream(io))
