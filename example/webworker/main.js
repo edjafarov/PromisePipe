@@ -1,6 +1,6 @@
 var work = require('webworkify');
 
-var stream = require('./WorkerDuplexStream.js')
+var stream = require('../connectors/WorkerDuplexStream.js')
 
 var logic = require('./logic.js')
 

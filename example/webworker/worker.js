@@ -1,5 +1,5 @@
 var logic = require('./logic.js')
-var stream = require('./WorkerDuplexStream.js')
+var stream = require('../connectors/WorkerDuplexStream.js')
 
 module.exports = function(self){
   logic.pipe.setEnv('worker');

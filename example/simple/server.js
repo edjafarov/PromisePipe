@@ -3,7 +3,7 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var stream = require('./SocketIODuplexStream')
+var stream = require('../connectors/SocketIODuplexStream')
 
 
 server.listen(3000)
