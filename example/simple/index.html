@@ -6,29 +6,14 @@
 	<h2>LOOK INTO CONSOLE</h2>
 	<form>
 		<input id="val" type="text" value="2"/>
-	</form>	
-	<button onclick="pipe(+document.getElementById('val').value).then(printResult)">RUN</button>
+	</form>
+	<button onclick="client(+document.getElementById('val').value).then(printResult)">RUN</button>
 	<script type="text/javascript" src="/bundle.js"></script>
 	<script type="text/javascript">
-	window.pipe = require('pipe');
-	var PromisePipe = require('PromisePipe');
-
-	var socket = io.connect('http://localhost:3000');
-	socket.on('messageToClient', function (message) {
-	  PromisePipe.execTransitionMessage(message);
-	});
-
-
-	PromisePipe.envTransition('client', 'server', function(message){
-		socket.emit('messageToServer', message);
-		return PromisePipe.promiseMessage(message);
-	});
-
+	window.client = require('client');
 	function printResult(data){
-		console.log("RESULT CLIENT: " + data);
+	  console.log("RESULT CLIENT: " + data);
 	}
-
-
 </script>
 </body>
 </html>

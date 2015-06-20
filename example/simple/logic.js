@@ -1,4 +1,5 @@
-var PromisePipe = require('./PromisePipe');
+var PromisePipe = require('../../src/PromisePipe')();
+PromisePipe.setMode("DEBUG");
 var Promise = require('es6-promise').Promise;
 var ENV = 'CLIENT';
 //set up server
@@ -18,7 +19,7 @@ module.exports = PromisePipe()
 	.then(doOnServer(minus(2)))
 	.then(minus(6))
 
-
+  module.exports.PromisePipe = PromisePipe;
 
 
 	function plus(a){
@@ -35,7 +36,7 @@ module.exports = PromisePipe()
 				return data - a;
 			});
 		}
-	}	
+	}
 
 
 
@@ -46,7 +47,7 @@ module.exports = PromisePipe()
 		return fn
 	}
 
-	
+
 	function prepare(data, context){
 		if(!context.stack) context.stack = [];
 		return data;
@@ -59,16 +60,16 @@ module.exports = PromisePipe()
 		return function(data, context){
 			return doAsyncStuff("multipy "+data+" by "+a, function(){
 				return data * a;
-			});			
+			});
 		}
-	}	
+	}
 	function pow(a){
 		return function(data, context){
 			return doAsyncStuff("power "+data+" by "+a, function(){
 				return Math.pow(data, a);
-			});				
+			});
 		}
-	}	
+	}
 
 	function doAsyncStuff(text, fn){
 		console.log(text);
