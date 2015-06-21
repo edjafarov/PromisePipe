@@ -245,6 +245,7 @@ function clientHandler(message){
   PromisePipe.execTransitionMessage(message);
 }
 ```
+
 ###PromisePipe.localContext(context) : PromisePipeWithContext
 With serverside you would probably need to have some isolated context like session that should not be accessible on client. You can extend the context for environment. [(Usage Eaxmple)](https://github.com/edjafarov/PromisePipe/blob/20661a4cc5ee14062bd9d4e4b106ff1b69ee8ebc/example/mongotodo/server.js#L39)
 
@@ -253,6 +254,27 @@ The message will be executed with access to additional context.
 
 #### PromisePipeWithContext.wrap(fn)
 The function will be executed with access to additional context.
+
+##Connectors
+To make connecting different environments easier there is connectors API.
+
+###PromisePipe.stream(from, to, Handler).connector(Connector)
+This is setting up transitions to use Connector.
+
+Connector is an object that should implement two methods: `send` and `listen`
+
+```javascript
+{
+  send: function(message){
+    //send message
+  },
+  listen: function(handler){
+    //if message comes call handler function with the message object
+  }
+}
+```
+
+There are implemented connectors for [SocketIO](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/SocketIODuplexStream.js), [HTTP](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/HTTPDuplexStream.js), [SocketIO + sessions](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/SessionSocketIODuplexStream.js), [Webworkers](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/WorkerDuplexStream.js)
 
 ##Debugging
 ###PromisePipe.setMode
