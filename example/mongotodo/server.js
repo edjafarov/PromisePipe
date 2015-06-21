@@ -1,4 +1,4 @@
-var main = require('./main.js');
+var main = require('./logic.js');
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
@@ -8,6 +8,8 @@ var cookieParser = require('cookie-parser');
 var expressSession = require('express-session');
 
 var MongoStore = require('connect-mongo')(expressSession);
+
+var stream = require('../connectors/SessionSocketIODuplexStream')
 
 var myCookieParser = cookieParser('secret');
 
@@ -30,16 +32,5 @@ app.use(express.static("./"))
 var SessionSockets = require('session.socket.io')
   , sessionSockets = new SessionSockets(io, sessionStore, myCookieParser);
 
-socketPipeHandler(sessionSockets);
 
-function socketPipeHandler(io){
-	io.on('connection', function (err, socket, session) {
-		if(session && !session.id) session.id = Math.ceil(Math.random()*Math.pow(10,16));
-	  socket.on('messageToServer', function (message) {
-	    PromisePipe.localContext({session: session}).execTransitionMessage(message).then(function(data){
-	    	message.data = data;
-	    	socket.emit('messageToClient', message);
-	    })
-	  });
-	});
-}
+PromisePipe.stream('server','client').pipe(stream.SIOServerClientStream(sessionSockets))

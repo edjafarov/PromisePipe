@@ -30,5 +30,5 @@ var todolist = [
 
 PromisePipe.stream('server','client', function(data, context, executor, end){
 	context.todolist = todolist;
-	executor(data, context).then(end);
+	return executor(data, context).then(end);
 }).pipe(stream.SIOServerClientStream(io))

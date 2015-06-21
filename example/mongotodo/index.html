@@ -7,28 +7,9 @@
 <body>
 
 	<div id="todo-app"></div>
-
 	<script type="text/javascript" src="/bundle.js"></script>
 	<script type="text/javascript">
-	window.main = require('main');
-	var PromisePipe = window.main.PromisePipe;
-
-	var socket = io.connect(document.location.toString());
-
-
-	function socketPipeTransport(socket){
-		socket.on('messageToClient', function (message) {
-		  PromisePipe.execTransitionMessage(message);
-		});
-
-
-
-		PromisePipe.envTransition('client', 'server', function(message){
-			socket.emit('messageToServer', message);
-			return PromisePipe.promiseMessage(message);
-		});
-	}
-	socketPipeTransport(socket);
+	window.main = require('client');
 	//init app
 	window.main.getItems();
 </script>
