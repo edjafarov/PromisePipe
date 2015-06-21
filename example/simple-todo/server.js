@@ -6,7 +6,7 @@ var io = require('socket.io')(server);
 
 server.listen(3000)
 
-var stream = require('../connectors/SocketIODuplexStream');
+var connectors = require('../connectors/SocketIODuplexStream');
 
 console.log("check localhost:3000");
 
@@ -31,4 +31,4 @@ var todolist = [
 PromisePipe.stream('server','client', function(data, context, executor, end){
 	context.todolist = todolist;
 	return executor(data, context).then(end);
-}).pipe(stream.SIOServerClientStream(io))
+}).connector(connectors.SIOServerClientStream(io))

@@ -1,17 +1,21 @@
 var pipe = require('./logic.js');
-var express = require('express');
-var app = express();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-var stream = require('../connectors/SocketIODuplexStream')
-
-
-server.listen(3000)
-
-console.log("check localhost:3000");
-
 var PromisePipe = pipe.PromisePipe;
 
+var express = require('express');
+var bodyParser = require('body-parser')
+var app = express();
+var server = require('http').Server(app);
+// parse application/json
+app.use(bodyParser.json())
+
+
+
+var io = require('socket.io')(server);
+var connectors = require('../connectors/SocketIODuplexStream')
+PromisePipe.stream('server','client').connector(connectors.SIOServerClientStream(io))
+
+//var connectors = require('../connectors/HTTPDuplexStream')
+//PromisePipe.stream('server','client').connector(connectors.HTTPServerClientStream(app))
 
 
 app.use(function(req,res,next){
@@ -19,4 +23,8 @@ app.use(function(req,res,next){
 })
 app.use(express.static("./"))
 
-PromisePipe.stream('server','client').pipe(stream.SIOServerClientStream(io))
+
+
+server.listen(3000)
+
+console.log("check localhost:3000");

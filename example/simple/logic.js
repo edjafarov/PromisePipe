@@ -23,7 +23,7 @@ module.exports = PromisePipe()
 
 
 	function plus(a){
-		return function(data, context){
+		return function plus(data, context){
 			return doAsyncStuff("add "+a+" to "+data, function(){
 				return data + a;
 			})
@@ -31,7 +31,7 @@ module.exports = PromisePipe()
 	}
 
 	function minus(a){
-		return function(data, context){
+		return function minus(data, context){
 			return doAsyncStuff("subtract "+a+" of "+data, function(){
 				return data - a;
 			});
@@ -57,14 +57,14 @@ module.exports = PromisePipe()
 
 
 	function multipy(a){
-		return function(data, context){
+		return function multipy(data, context){
 			return doAsyncStuff("multipy "+data+" by "+a, function(){
 				return data * a;
 			});
 		}
 	}
 	function pow(a){
-		return function(data, context){
+		return function pow(data, context){
 			return doAsyncStuff("power "+data+" by "+a, function(){
 				return Math.pow(data, a);
 			});

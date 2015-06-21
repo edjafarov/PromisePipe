@@ -266,7 +266,7 @@ function PromisePipeFactory(){
 
   PromisePipe.stream = function(from, to, processor){
     return {
-      pipe: function(strm){
+      connector: function(strm){
         //set transition
         PromisePipe.envTransition(from, to, function(message){
           strm.send(message);

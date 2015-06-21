@@ -9,7 +9,7 @@ var expressSession = require('express-session');
 
 var MongoStore = require('connect-mongo')(expressSession);
 
-var stream = require('../connectors/SessionSocketIODuplexStream')
+var connectors = require('../connectors/SessionSocketIODuplexStream')
 
 var myCookieParser = cookieParser('secret');
 
@@ -33,4 +33,4 @@ var SessionSockets = require('session.socket.io')
   , sessionSockets = new SessionSockets(io, sessionStore, myCookieParser);
 
 
-PromisePipe.stream('server','client').pipe(stream.SIOServerClientStream(sessionSockets))
+PromisePipe.stream('server','client').connector(connectors.SIOServerClientStream(sessionSockets))
