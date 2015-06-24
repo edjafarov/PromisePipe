@@ -263,7 +263,7 @@ function PromisePipeFactory(){
   // messageResolvers save the call and resoves it when message came back
   PromisePipe.messageResolvers = {};
 
-
+  //TODO: cover by tests
   PromisePipe.stream = function(from, to, processor){
     return {
       connector: function(strm){
@@ -348,8 +348,16 @@ function PromisePipeFactory(){
     var ids = chain.map(function(el){
       return el._id;
     });
+    //Check that this is bounded chain nothing is passed through
+    var firstChainIndex = ids.indexOf(message.chains[0]);
 
-    var newChain = chain.slice(ids.indexOf(message.chains[0]), ids.indexOf(message.chains[1]) + 1);
+    //someone is trying to hack the Pipe
+    if(firstChainIndex > 0 && sequence[firstChainIndex]._env == sequence[firstChainIndex - 1]._env) {
+      console.error("Non-consistent pipe call, message is trying to omit chains")
+      return Promise.reject({error: "Non-consistent pipe call, message is trying to omit chains"}).catch(unhandledCatch);
+    }
+
+    var newChain = chain.slice(firstChainIndex, ids.indexOf(message.chains[1]) + 1);
 
     newChain = newChain.map(bindTo(context).bindIt);
 
@@ -534,15 +542,3 @@ function PromisePipeFactory(){
 
 
 module.exports = PromisePipeFactory;
-
-
-
-
-
-/*
-[ ] TODO: create urtility to make easier env specific
-    context augumenting.
-    The problem is that on server we should have more information
-    inside context. Like session or other stuff. Or maybe not?
-[ ] TODO
-*/
