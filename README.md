@@ -2,6 +2,8 @@
 
 #PromisePipe - reusable promise chains
 
+[![Join the chat at https://gitter.im/edjafarov/PromisePipe](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/edjafarov/PromisePipe?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 PromisePipe allows to build a reusable Promise chains. It returns a function which you can call multiple times and each time all chains will be called. The Function returns a promise each time you call it.
 
 ```javascript
