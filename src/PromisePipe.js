@@ -2,37 +2,42 @@ var Promise = Promise || require('es6-promise').Promise;
 var stackTrace = require('stacktrace-js');
 var serialize = require('json-stringify-safe');
 
-
 function augumentContext(context, property, value){
   Object.defineProperty(context, property, {
     configurable: true,
     enumerable: false,
     writable: false,
     value: value
-  })
+  });
 }
-
-
-
 
 function PromisePipeFactory(){
 
-  // cleanup PromisePipe call ID/and env at the Pipe end
+  /**
+   * cleanup PromisePipe call ID/and env at the Pipe end
+   */
   function cleanup(data, context){
     delete context._pipecallId;
     delete context._env;
     return data;
   }
 
+  /**
+   * Set env to PromisePipe env and set unique ID
+   * @param {Object}  item  Chain function
+   */
   function doOnPipeEnv(item){
     item._id = ID();
     item._env = PromisePipe.env;
-    return item
+    return item;
   }
 
+  /**
+   * PromisePipe chain constructor
+   * @param {Array} sequence  Sequence of chain functions
+   */
   function PromisePipe(sequence){
-    sequence = sequence || []
-    var rec = [];
+    sequence = sequence || [];
 
     function result(data, context){
       context = context || {};
@@ -45,7 +50,7 @@ function PromisePipeFactory(){
       augumentContext(context, '_trace', _trace);
 
       var toConcat = [sequence];
-      if(PromisePipe._mode == 'DEBUG') toConcat.push([doOnPipeEnv(printDebug)]);
+      if(PromisePipe._mode === 'DEBUG') toConcat.push([doOnPipeEnv(printDebug)]);
       toConcat.push([doOnPipeEnv(cleanup)]);
       var chain = [].concat.apply([], toConcat);
 
@@ -59,7 +64,7 @@ function PromisePipeFactory(){
 
     function printDebug(data, context){
       var ln = context._trace[context._pipecallId].length;
-      printDebugChain(context._trace[context._pipecallId].slice(0, ln-1))
+      printDebugChain(context._trace[context._pipecallId].slice(0, ln-1));
       return data;
     }
 
@@ -67,6 +72,7 @@ function PromisePipeFactory(){
       var seqIds = sequence.map(function(fn){
         return fn._id;
       });
+
       if(console.group){
         showLevel(0, traceLog);
         function showLevel(i, traceLog){
@@ -119,12 +125,12 @@ function PromisePipeFactory(){
       var fn = function (data, context){
         return Promise.all(pipes.map(function(pipe){
           return pipe(data, context);
-        }))
-      }
+        }));
+      };
       if(!fn._id) fn._id = ID();
       sequence.push(fn);
       return result;
-    }
+    };
     // join pipes
     result.join = function(){
       var pipers = [].slice.call(arguments);
@@ -135,17 +141,17 @@ function PromisePipeFactory(){
 
       var newSequence = sequence.concat.apply(sequence, sequences);
       return PromisePipe(newSequence);
-    }
+    };
     // get an array of pipes
     result._getSequence = function(){
       return sequence;
-    }
+    };
 
     // add API extensions for the promisepipe
     result = Object.keys(PromisePipe.transformations).reduce(function(thePipe, name){
       var customApi = PromisePipe.transformations[name];
       customApi._name = name;
-      if(typeof(customApi) == 'object'){
+      if(typeof(customApi) === 'object'){
         thePipe[name] = wrapObjectPromise(customApi, sequence, result);
       } else {
         thePipe[name] = wrapPromise(customApi, sequence, result);
@@ -158,10 +164,10 @@ function PromisePipeFactory(){
 
   function wrapObjectPromise(customApi, sequence, result){
     return Object.keys(customApi).reduce(function(api, apiname){
-      if(apiname.charAt(0) == "_") return api;
+      if(apiname.charAt(0) === "_") return api;
       customApi[apiname]._env = customApi._env;
       customApi[apiname]._name = customApi._name +"."+ apiname;
-      if(typeof(customApi[apiname]) == 'object'){
+      if(typeof(customApi[apiname]) === 'object') {
         api[apiname] = wrapObjectPromise(customApi[apiname], sequence, result);
       } else {
         api[apiname] = wrapPromise(customApi[apiname], sequence, result);
@@ -184,7 +190,7 @@ function PromisePipeFactory(){
       wrappedFunction._id = ID();
       sequence.push(wrappedFunction);
       return result;
-    }
+    };
   }
 
   // PromisePipe is a singleton
@@ -198,7 +204,7 @@ function PromisePipeFactory(){
   */
   PromisePipe.setMode = function(mode){
     PromisePipe._mode = mode;
-  }
+  };
 
   /*
   * setting up env for pipe
@@ -223,41 +229,42 @@ function PromisePipeFactory(){
     if(!env) throw new Error('You should explicitly specify env');
     var result = function makeEnv(fn){
       return fn._env = env;
-    }
+    };
     result.do = function doIn(fn){
       return fn._env = env;
-    }
+    };
     return result;
   };
 
   PromisePipe.envTransitions = {};
+  PromisePipe.systemEnvs = ['both', 'inherit', 'inherit-pipe'];
 
   // Inside transition you describe how to send message from one
   // env to another within a Pipe call
   PromisePipe.envTransition = function(from, to, transition){
     if(!PromisePipe.envTransitions[from]) PromisePipe.envTransitions[from] = {};
     PromisePipe.envTransitions[from][to] = transition;
-  }
+  };
 
   //env transformations
   PromisePipe.envContextTransformations = function(from, to, transformation){
     if(!PromisePipe.contextTransformations[from]) PromisePipe.contextTransformations[from] = {};
     PromisePipe.contextTransformations[from][to] = transformation;
-  }
+  };
 
   PromisePipe.transformations = {};
 
   // You can extend PromisePipe API with extensions
   PromisePipe.use = function(name, transformation, options){
-    options = options || {}
+    options = options || {};
     if(!options._env) options._env = PromisePipe.env;
     PromisePipe.transformations[name] = transformation;
 
     Object.keys(options).forEach(function(optname){
       PromisePipe.transformations[name][optname] = options[optname];
-    })
+    });
 
-  }
+  };
   // when you pass Message to another env, you have to wait
   // until it will come back
   // messageResolvers save the call and resoves it when message came back
@@ -292,13 +299,10 @@ function PromisePipeFactory(){
             return processor(data, localContext, executor, end);
           }
           return PromisePipe.execTransitionMessage(message).then(end);
-        })
+        });
       }
-    }
-  }
-
-
-
+    };
+  };
 
   PromisePipe.promiseMessage = function(message){
     return new Promise(function(resolve, reject){
@@ -307,8 +311,9 @@ function PromisePipeFactory(){
         reject: reject,
         context: message.context
       };
-    })
-  }
+    });
+  };
+
   // when you pass a message within a pipe to other env
   // you should
   PromisePipe.execTransitionMessage = function execTransitionMessage(message){
@@ -339,8 +344,8 @@ function PromisePipeFactory(){
     delete context._passChains;
 
     //get back contexts non enumerables
-    augumentContext(context, '_pipecallId', message.call)
-    augumentContext(context, '_trace', message._trace)
+    augumentContext(context, '_pipecallId', message.call);
+    augumentContext(context, '_trace', message._trace);
 
     var sequence = PromisePipe.pipes[message.pipe];
     var chain = [].concat(sequence);
@@ -352,8 +357,8 @@ function PromisePipeFactory(){
     var firstChainIndex = ids.indexOf(message.chains[0]);
 
     //someone is trying to hack the Pipe
-    if(firstChainIndex > 0 && sequence[firstChainIndex]._env == sequence[firstChainIndex - 1]._env) {
-      console.error("Non-consistent pipe call, message is trying to omit chains")
+    if(firstChainIndex > 0 && sequence[firstChainIndex]._env === sequence[firstChainIndex - 1]._env) {
+      console.error("Non-consistent pipe call, message is trying to omit chains");
       return Promise.reject({error: "Non-consistent pipe call, message is trying to omit chains"}).catch(unhandledCatch);
     }
 
@@ -368,7 +373,7 @@ function PromisePipeFactory(){
     }
 
     return doit(newChain, message.data, {_id: message.pipe}, context).catch(unhandledCatch);
-  }
+  };
 
   PromisePipe.createTransitionMessage = function createTransitionMessage(data, context, pipeId, chainId, envBackChainId, callId){
     return {
@@ -378,8 +383,8 @@ function PromisePipeFactory(){
       chains: [chainId, envBackChainId],
       call: callId,
       _trace: context._trace
-    }
-  }
+    };
+  };
   /*
     experimental
   */
@@ -399,17 +404,17 @@ function PromisePipeFactory(){
         return function(data, origContext){
           context.__proto__ = origContext;
           return fn(data, context);
-        }
+        };
       }
-    }
-  }
+    };
+  };
 
   // build a chain of promises
   function doit(sequence, data, pipe, ctx){
     function getChainIndexById(id){
       return sequence.map(function(el){
-        return el._id
-      }).indexOf(id)
+        return el._id;
+      }).indexOf(id);
     }
 
     function getIndexOfNextEnvAppearance(fromIndex, env){
@@ -417,41 +422,65 @@ function PromisePipeFactory(){
         return el._env;
       }).indexOf(env, fromIndex);
     }
+
+    function isSystemTransition (env) {
+      return PromisePipe.systemEnvs.indexOf(env) > -1;
+    }
+
+    function isValidTransition (funcArr) {
+      var isValid = true;
+
+      if (!(PromisePipe.envTransitions[ctx._env] && PromisePipe.envTransitions[ctx._env][funcArr._env])) {
+        if (!isSystemTransition(funcArr._env)) {
+          isValid = false;
+        }
+      }
+
+      return isValid;
+    }
+
     return sequence.reduce(function(doWork, funcArr){
+      var newArgFunc;
       //get into other env first time
-      if(ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id))) {
+      if (ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id))) {
 
         var firstChainN = getChainIndexById(funcArr._id);
 
         var lastChain = getIndexOfNextEnvAppearance(firstChainN, PromisePipe.env);
-        lastChain = (lastChain==-1)?(sequence.length - 1):(lastChain - 1);
+        lastChain = (lastChain === -1) ? (sequence.length - 1) : (lastChain - 1);
 
         ctx._passChains = sequence.map(function(el){
-          return el._id
+          return el._id;
         }).slice(firstChainN, lastChain + 1);
-        // If there is a transition
-        if(PromisePipe.envTransitions[ctx._env] && PromisePipe.envTransitions[ctx._env][funcArr._env]){
-          var newArgFunc = function(data){
-            var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[lastChain]._id, ctx._pipecallId);
-            return PromisePipe.envTransitions[ctx._env][funcArr._env].call(this, msg);
-          }
 
-          return doWork.then(newArgFunc);
-        } else{
+        // If there is a transition
+        if(!isValidTransition(funcArr)){
           throw new Error("there is no transition " + ctx._env + " to " + funcArr._env);
         }
+
+        newArgFunc = function(data){
+          var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[lastChain]._id, ctx._pipecallId);
+
+          if (!PromisePipe.envTransitions[ctx._env][funcArr._env]) {
+            console.log(ctx._env, funcArr._env, Object.keys(PromisePipe.envTransitions));
+          }
+
+          return PromisePipe.envTransitions[ctx._env][funcArr._env].call(this, msg);
+        };
+
+        return doWork.then(newArgFunc);
+
       //got next chain from other env
       } else if(ctx._env !== funcArr._env && ctx._passChains && !!~ctx._passChains.indexOf(funcArr._id)) {
-        var newArgFunc = function(data){
+        newArgFunc = function(data){
           return data;
-        }
+        };
         return doWork.then(newArgFunc);
       }
       // if next promise is catch
       if(funcArr && funcArr.isCatch) {
         return doWork.catch(funcArr); //do catch
       }
-
 
       //it shows error in console and passes it down
       function errorEnhancer(data){
@@ -460,15 +489,14 @@ function PromisePipeFactory(){
           data.caughtOnChainId = funcArr._id;
 
           var trace = stackTrace({e: data});
-          if(funcArr._name) {console.log("Failed inside " + funcArr._name)}
-          console.log(data.toString())
+          if(funcArr._name) {console.log("Failed inside " + funcArr._name);}
+          console.log(data.toString());
           console.log(trace.join("\n"));
         }
         return Promise.reject(data);
       }
 
       return doWork.then(funcArr).catch(errorEnhancer);
-
     }, Promise.resolve(data));
   }
 
@@ -485,7 +513,7 @@ function PromisePipeFactory(){
               var joinedContext = getProtoChain(that)
                 .reverse()
                 .reduce(join, {});
-              var cleanContext = JSON.parse(serialize(joinedContext))
+              var cleanContext = JSON.parse(serialize(joinedContext));
               //should be hidden
               delete cleanContext._passChains;
               that._trace[that._pipecallId].push({
@@ -494,28 +522,28 @@ function PromisePipeFactory(){
                 context: JSON.stringify(cleanContext),
                 timestamp: Date.now(),
                 env: that._env
-              })
+              });
             }
           }
 
 
           return handler.call(that, data, that);
-        }
+        };
 
         newArgFunc._name = handler.name;
         Object.keys(handler).reduce(function(funObj, key){
-          funObj[key] = handler[key]
+          funObj[key] = handler[key];
           return funObj;
         }, newArgFunc);
         return newArgFunc;
       }
-    }
+    };
   }
 
   function join(result,  obj){
     Object.keys(obj).forEach(function(key){
       result[key] = obj[key];
-    })
+    });
     return result;
   }
 
@@ -526,8 +554,6 @@ function PromisePipeFactory(){
     return result;
   }
 
-
-
   var counter = 1234567890987;
   function ID() {
     counter++;
@@ -535,7 +561,7 @@ function PromisePipeFactory(){
     // Convert it to base 36 (numbers + letters), and grab the first 9 characters
     // after the decimal.
     return counter.toString(36).substr(-8);
-  };
+  }
   return PromisePipe;
 }
 
