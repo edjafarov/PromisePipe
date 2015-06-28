@@ -32,7 +32,7 @@ function PromisePipeFactory(){
     function result(data, context){
       context = context || {};
       // set Random PromisePipe call ID
-      augumentContext(context, '_pipecallId', Math.ceil(Math.random()*Math.pow(10,16)));
+      augumentContext(context, '_pipecallId', Math.ceil(Math.random() * Math.pow(10, 16)));
       // set current PromisePipe env
       augumentContext(context, '_env', PromisePipe.env);
       var _trace = {};
@@ -41,7 +41,7 @@ function PromisePipeFactory(){
 
       var toConcat = [sequence];
 
-      if(PromisePipe._mode == 'DEBUG') {
+      if(PromisePipe._mode === 'DEBUG') {
         var debugChain = {
           func: printDebug,
           _id: ID(),
@@ -59,7 +59,10 @@ function PromisePipeFactory(){
       var chain = [].concat.apply([], toConcat);
 
       chain = chain.map(bindTo(context).bindIt.bind(result)).map(function(fn){
-        if(!fn._env) fn._env = PromisePipe.env;
+        if(!fn._env) {
+          fn._env = PromisePipe.env;
+        }
+
         return fn;
       });
       // run the chain
@@ -68,7 +71,7 @@ function PromisePipeFactory(){
 
     function printDebug(data, context){
       var ln = context._trace[context._pipecallId].length;
-      printDebugChain(context._trace[context._pipecallId].slice(0, ln-1));
+      printDebugChain(context._trace[context._pipecallId].slice(0, ln - 1));
       return data;
     }
 
@@ -77,25 +80,32 @@ function PromisePipeFactory(){
         return fn._id;
       });
 
+      function showLevel(i, traceLog){
+        var item = traceLog[i];
+        var fnId = seqIds.indexOf(item.chainId);
+        var name = '';
+        if (!!~fnId) {
+          name = sequence[fnId].name || sequence[fnId]._name;
+        }
+        console.group('.then(' + name + ')[' + item.env + ']');
+        console.log('data', item.data && JSON.parse(item.data));
+        console.log('context', JSON.parse(item.context));
+        if(traceLog[i + 1]) {
+          showLevel(i + 1, traceLog);
+        }
+        console.groupEnd('.then(' + name + ')');
+      }
+
       if(console.group){
         showLevel(0, traceLog);
-        function showLevel(i, traceLog){
-          var item = traceLog[i];
-          var fnId = seqIds.indexOf(item.chainId);
-          var name = '';
-          if(!!~fnId) name = sequence[fnId].name || sequence[fnId]._name;
-          console.group(".then("+name+")["+item.env+"]");
-          console.log("data", item.data && JSON.parse(item.data));
-          console.log("context", JSON.parse(item.context));
-          if(traceLog[i + 1]) showLevel(i+1, traceLog);
-          console.groupEnd(".then("+name+")");
-        }
       } else {
         traceLog.forEach(function(item, i){
-          var shift = new Array(i*4+1).join(" ");
+          var shift = new Array(i * 4 + 1).join('');
           var fnId = seqIds.indexOf(item.chainId);
           var name = '';
-          if(!!~fnId) name = sequence[fnId].name;
+          if(!!~fnId) {
+            name = sequence[fnId].name;
+          }
 
           console.log(shift + ".then("+name+")["+item.env+"]");
           console.log(shift + "    data    : " + JSON.stringify(item.data));
