@@ -24,11 +24,6 @@ function PromisePipeFactory(){
     return data;
   }
 
-  function doOnPipeEnv(item){
-    item._id = ID();
-    item._env = PromisePipe.env;
-    return item
-  }
 
   function PromisePipe(sequence){
     sequence = sequence || []
@@ -45,8 +40,20 @@ function PromisePipeFactory(){
       augumentContext(context, '_trace', _trace);
 
       var toConcat = [sequence];
-      if(PromisePipe._mode == 'DEBUG') toConcat.push([doOnPipeEnv(printDebug)]);
-      toConcat.push([doOnPipeEnv(cleanup)]);
+      if(PromisePipe._mode == 'DEBUG') {
+        var debugChain = {
+          func: printDebug,
+          _id: ID(),
+          _env: PromisePipe.env
+        }
+        toConcat.push(debugChain);
+      }
+      var cleanupChain = {
+        func: cleanup,
+        _id: ID(),
+        _env: PromisePipe.env
+      }
+      toConcat.push(cleanupChain);
       var chain = [].concat.apply([], toConcat);
 
       chain = chain.map(bindTo(context).bindIt.bind(result)).map(function(fn){
@@ -101,15 +108,25 @@ function PromisePipeFactory(){
 
     // add function to the chain of a pipe
     result.then = function(fn){
-      if(!fn._id) fn._id = ID();
-      sequence.push(fn);
+      var chain = {
+        func: fn,
+        _id: ID(),
+        name: fn.name,
+        _env: fn._env
+      }
+      sequence.push(chain);
       return result;
     }
     // add catch to the chain of a pipe
     result.catch = function(fn){
-      fn.isCatch = true;
-      if(!fn._id) fn._id = ID();
-      sequence.push(fn);
+      var chain = {
+        func: fn,
+        _id: ID(),
+        isCatch: true,
+        name: fn.name,
+        _env: fn._env
+      }
+      sequence.push(chain);
       return result;
     }
 
@@ -121,8 +138,12 @@ function PromisePipeFactory(){
           return pipe(data, context);
         }))
       }
-      if(!fn._id) fn._id = ID();
-      sequence.push(fn);
+      var chain = {
+        func: fn,
+        _id: ID(),
+        name: "all."
+      }
+      sequence.push(chain);
       return result;
     }
     // join pipes
@@ -178,11 +199,14 @@ function PromisePipeFactory(){
         var argumentsToPassInside = [data, context].concat(args);
         return transObject.apply(result, argumentsToPassInside);
       };
-      wrappedFunction._name = transObject._name;
-      wrappedFunction._env = transObject._env;
-      wrappedFunction.isCatch = transObject.isCatch;
-      wrappedFunction._id = ID();
-      sequence.push(wrappedFunction);
+      var chain = {
+        func: wrappedFunction,
+        _id: ID(),
+        name: transObject._name,
+        _env: transObject._env,
+        isCatch: transObject.isCatch
+      }
+      sequence.push(chain);
       return result;
     }
   }
@@ -222,10 +246,14 @@ function PromisePipeFactory(){
   PromisePipe.in = function(env){
     if(!env) throw new Error('You should explicitly specify env');
     var result = function makeEnv(fn){
-      return fn._env = env;
+      var ret = fn.bind(null);
+      ret._env = env;
+      return ret;
     }
     result.do = function doIn(fn){
-      return fn._env = env;
+      var ret = fn.bind(null);
+      ret._env = env;
+      return ret;
     }
     return result;
   };
@@ -270,15 +298,18 @@ function PromisePipeFactory(){
         //set transition
         PromisePipe.envTransition(from, to, function(message){
           strm.send(message);
+          console.log("SENT:", message);
           return PromisePipe.promiseMessage(message);
         });
 
         strm.listen(function(message){
+          console.log("GOT:", message);
           var context = message.context;
           var data = message.data;
           function end(data){
             message.context = context;
             message.data = data;
+            console.log("PROCESSED:", message);
             strm.send(message);
           }
           if(processor){
@@ -348,6 +379,7 @@ function PromisePipeFactory(){
     var ids = chain.map(function(el){
       return el._id;
     });
+
     //Check that this is bounded chain nothing is passed through
     var firstChainIndex = ids.indexOf(message.chains[0]);
 
@@ -475,8 +507,8 @@ function PromisePipeFactory(){
 
   function bindTo(that){
     return {
-      bindIt: function bindIt(handler){
-
+      bindIt: function bindIt(chain){
+        var handler = chain.func;
         var newArgFunc = function(data){
           // advanced debugging
 
@@ -489,7 +521,7 @@ function PromisePipeFactory(){
               //should be hidden
               delete cleanContext._passChains;
               that._trace[that._pipecallId].push({
-                chainId: handler._id,
+                chainId: chain._id,
                 data: serialize(data),
                 context: JSON.stringify(cleanContext),
                 timestamp: Date.now(),
@@ -502,9 +534,9 @@ function PromisePipeFactory(){
           return handler.call(that, data, that);
         }
 
-        newArgFunc._name = handler.name;
-        Object.keys(handler).reduce(function(funObj, key){
-          funObj[key] = handler[key]
+        newArgFunc._name = chain.name;
+        Object.keys(chain).reduce(function(funObj, key){
+          funObj[key] = chain[key]
           return funObj;
         }, newArgFunc);
         return newArgFunc;
