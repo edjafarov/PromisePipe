@@ -452,10 +452,3 @@ describe('PromisePipe with 3 functions when called', function(){
 		sinon.assert.calledWithExactly(finish, data2);
 	});
 });
-/*
-TODO: test errohandling
-// fix context for the case
-// error handling
-// swithch between envs
-// switch between envs within single .all
-*/
