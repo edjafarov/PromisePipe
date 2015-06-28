@@ -185,7 +185,7 @@ describe('PromisePipe when comes to chains from other env', function(){
 })
 
 
-xdescribe('PromisePipe (#24 bug test)', function(){
+describe('PromisePipe (#24 bug test)', function(){
 
 	var PromisePipe = require('../src/PromisePipe')();
 	var PromisePipeServer = require('../src/PromisePipe')();
@@ -204,9 +204,9 @@ xdescribe('PromisePipe (#24 bug test)', function(){
 
 	fn1.withArgs(data1).returns(data1);
 	fn2.withArgs(data1).returns(data2);
-	//fn3.withArgs(data2).returns(data2);
+	fn2.withArgs(data2).returns(data1);
 	fn4.withArgs(data1).returns(data1);
-	fn4.withArgs(data2).returns(data2);
+
 
 
 	var pipe = PromisePipe()
@@ -239,8 +239,8 @@ xdescribe('PromisePipe (#24 bug test)', function(){
 			sinon.assert.calledOnce(fn1);
 			sinon.assert.calledTwice(fn2);
 			sinon.assert.calledOnce(fn4);
-			sinon.assert.calledWith(fn4, data2);
-			sinon.assert.calledWithExactly(finish, data2);
+			sinon.assert.calledWith(fn4, data1);
+			sinon.assert.calledWithExactly(finish, data1);
 		})
 	})
 })
