@@ -294,9 +294,17 @@ function PromisePipeFactory(){
 
         return doWork.then(function (data) {
           var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
-          console.log(msg);
+
           return PromisePipe.envTransitions[ctx._env][funcArr._env].call(this, msg);
         });
+      }
+    },
+    'both': {
+      predicate: function (sequence, data, pipe, ctx, funcArr) {
+        return funcArr._env === 'both';
+      },
+      handler: function () {
+        console.log('both handler');
       }
     },
     'inherit-pipe': {
@@ -312,7 +320,7 @@ function PromisePipeFactory(){
      */
     'inherit': {
       predicate: function (sequence, data, pipe, ctx, funcArr) {
-        return ctx._env !== funcArr._env && ctx._passChains && !!~ctx._passChains.indexOf(funcArr._id);
+        return funcArr._env === 'inherit' || (ctx._env !== funcArr._env && ctx._passChains && !!~ctx._passChains.indexOf(funcArr._id));
       },
       handler: function (sequence, data, pipe, ctx, doWork) {
         return doWork.then(function (data) {
@@ -411,6 +419,7 @@ function PromisePipeFactory(){
     if(!PromisePipe.envTransitions[from]) {
       PromisePipe.envTransitions[from] = {};
     }
+
     PromisePipe.envTransitions[from][to] = transition;
   };
 
