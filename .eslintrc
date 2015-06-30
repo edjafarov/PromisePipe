@@ -8,7 +8,8 @@
     "describe": false,
     "it": false,
     "before": false,
-    "require": false
+    "require": false,
+    "module": true
   },
   "rules": {
     "quotes": [1, "single"],
