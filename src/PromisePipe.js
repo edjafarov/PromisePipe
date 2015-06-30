@@ -315,7 +315,7 @@ function PromisePipeFactory(){
         return ctx._env !== funcArr._env && ctx._passChains && !!~ctx._passChains.indexOf(funcArr._id);
       },
       handler: function (sequence, data, pipe, ctx, doWork) {
-        return doWork.then(function () {
+        return doWork.then(function (data) {
           return data;
         });
       }
