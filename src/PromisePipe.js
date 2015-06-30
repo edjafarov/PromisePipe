@@ -281,59 +281,38 @@ function PromisePipeFactory(){
      */
     'jump': {
       predicate: function (sequence, data, pipe, ctx, funcArr) {
-        return ctx._env !== funcArr._env && isNotSkipChain(ctx, funcArr);
+        return ctx._env !== funcArr._env && (!ctx._passChains || !~ctx._passChains.indexOf(funcArr._id));
       },
       handler: function (sequence, data, pipe, ctx, doWork, funcArr) {
-        var range = rangeChain(funcArr._id, sequence), handler;
+        var range = rangeChain(funcArr._id, sequence);
 
         ctx._passChains = passChains(range[0], range[1], sequence);
 
-        // If there is a transition
         if(!isValidTransition(funcArr, ctx)){
           throw new Error("there is no transition " + ctx._env + " to " + funcArr._env);
         }
 
-        handler = function(data){
+        return doWork.then(function (data) {
           var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
-
+          console.log(msg);
           return PromisePipe.envTransitions[ctx._env][funcArr._env].call(this, msg);
-        };
-
-        return doWork.then(handler);
+        });
       }
     },
-    // /**
-    //  * Complete function in multiple envs
-    //  */
-    // 'both': {
-    //   predicate: function (sequence, data, pipe, ctx, funcArr) {
-    //     return funcArr._env === 'both';
-    //   },
-    //   handler: function () {
-    //     // console.log('inherit');
-    //   }
-    // },
-    // /**
-    //  * Use env of prevois env
-    //  */
-    // 'inherit': {
-    //   predicate: function (sequence, data, pipe, ctx, funcArr) {
-    //     return (ctx._env === 'inherit' || funcArr._env === ctx._env);
-    //   },
-    //   handler: function (sequence, data, pipe, ctx, doWork, funcArr) {
-    //     if (funcArr && funcArr.isCatch) {
-    //       return doWork.catch(funcArr);
-    //     }
-    //
-    //     return doWork.then(funcArr);
-    //   }
-    // },
+    'inherit-pipe': {
+      predicate: function (sequence, data, pipe, ctx, funcArr) {
+        return funcArr._env === ctx._env;
+      },
+      handler: function (sequence, data, pipe, ctx, doWork, funcArr) {
+        return doWork.then(funcArr);
+      }
+    },
     /**
      * Use env of pipe env
      */
     'inherit': {
       predicate: function (sequence, data, pipe, ctx, funcArr) {
-        return funcArr._env !== ctx._env && isSkipChain(ctx, funcArr);
+        return ctx._env !== funcArr._env && ctx._passChains && !!~ctx._passChains.indexOf(funcArr._id);
       },
       handler: function (sequence, data, pipe, ctx, doWork) {
         return doWork.then(function () {
@@ -377,20 +356,6 @@ function PromisePipeFactory(){
   }
 
   /**
-   * Is skip current chain
-   */
-  function isNotSkipChain (func, ctx) {
-    return !ctx._passChains || !~ctx._passChains.indexOf(func._id);
-  }
-
-  /**
-   * Is not skip current chain
-   */
-  function isSkipChain (func, ctx) {
-    return ctx._passChains && !!~ctx._passChains.indexOf(func._id);
-  }
-
-  /**
    * Check valid is transition
    */
   function isValidTransition (funcArr, ctx) {
@@ -412,12 +377,8 @@ function PromisePipeFactory(){
    * @param   {Function}  predicate
    * @return  {Array}
    */
-  function passChains (first, last, sequence, predicate) {
-    predicate = predicate || function () {
-      return true;
-    };
-
-    return sequence.filter(predicate).map(function (el) {
+  function passChains (first, last, sequence) {
+    return sequence.map(function (el) {
       return el._id;
     }).slice(first, last + 1);
   }
@@ -628,28 +589,6 @@ function PromisePipeFactory(){
   // build a chain of promises
   function doit(sequence, data, pipe, ctx){
 
-    /**
-     * Execute handler on correct env
-     */
-    function doOnEnv (doWork, funcArr) {
-
-      if (funcArr && funcArr.isCatch) {
-         return doWork.catch(funcArr);
-      }
-
-      return Object.keys(PromisePipe.systemEnvs).reduce(function (handler, name) {
-        if (handler) {
-          return handler;
-        }
-
-        if (PromisePipe.systemEnvs[name].predicate(sequence, data, pipe, ctx, funcArr)) {
-          return PromisePipe.systemEnvs[name].handler.bind(this, sequence, data, pipe, ctx, doWork, funcArr);
-        }
-
-        return null;
-      }, null) || funcArr;
-    }
-
     return sequence.reduce(function(doWork, funcArr){
       //it shows error in console and passes it down
       function errorEnhancer(data){
@@ -667,7 +606,26 @@ function PromisePipeFactory(){
         return Promise.reject(data);
       }
 
-      return doWork.then(doOnEnv(doWork, funcArr)).catch(errorEnhancer);
+      /**
+       * Execute handler on correct env
+       */
+      function doOnEnv (doWork, funcArr) {
+        return Object.keys(PromisePipe.systemEnvs).reduce(function (handler, name) {
+          if (!handler && PromisePipe.systemEnvs[name].predicate(sequence, data, pipe, ctx, funcArr)) {
+            return function () {
+              return PromisePipe.systemEnvs[name].handler(sequence, data, pipe, ctx, doWork, funcArr);
+            };
+          }
+
+          return handler;
+        }, null) || funcArr;
+      }
+
+      if (funcArr && funcArr.isCatch) {
+        return doWork.catch(funcArr);
+      }
+
+      return doOnEnv(doWork, funcArr)().catch(errorEnhancer);
     }, Promise.resolve(data));
   }
 
