@@ -301,7 +301,7 @@ function PromisePipeFactory(){
     },
     'inherit-pipe': {
       predicate: function (sequence, data, pipe, ctx, funcArr) {
-        return funcArr._env === ctx._env;
+        return funcArr._env === ctx._env || funcArr._env === 'inherit-pipe';
       },
       handler: function (sequence, data, pipe, ctx, doWork, funcArr) {
         return doWork.then(funcArr);
