@@ -275,103 +275,6 @@ function PromisePipeFactory(){
 
   PromisePipe.envTransitions = {};
 
-  PromisePipe.systemEnvs = {
-    /**
-     * Use env of pipe env
-     */
-    'inherit': {
-      predicate: function (sequence, data, pipe, ctx, funcArr, prevFuncArr) {
-        return funcArr._env === 'inherit' && prevFuncArr._env === ctx._env;
-      },
-      handler: function (sequence, data, pipe, ctx, doWork, funcArr) {
-        return funcArr;
-      }
-    }
-  };
-
-  /**
-   * Get chain by index
-   * @param {String}  id
-   * @param {Array}   sequence
-   */
-  function getChainIndexById(id, sequence){
-    return sequence.map(function(el){
-      return el._id;
-    }).indexOf(id);
-  }
-
-  /**
-   * Get index of next env appearance
-   * @param   {Number}  fromIndex
-   * @param   {String}  env
-   * @param   {Array}   sequence
-   * @return  {Number}
-   */
-  function getIndexOfNextEnvAppearance(fromIndex, env, sequence){
-    return sequence.map(function(el){
-      return el._env;
-    }).indexOf(env, fromIndex);
-  }
-
-  /**
-   * Check env of system behavoir
-   * @param   {String}  env Env for checking
-   * @return  {Boolean}
-   */
-  function isSystemTransition (env) {
-    return !!PromisePipe.systemEnvs[env];
-  }
-
-  /**
-   * Check valid is transition
-   */
-  function isValidTransition (funcArr, ctx) {
-    var isValid = true;
-
-    if (!(PromisePipe.envTransitions[ctx._env] && PromisePipe.envTransitions[ctx._env][funcArr._env])) {
-      if (!isSystemTransition(funcArr._env)) {
-        isValid = false;
-      }
-    }
-
-    return isValid;
-  }
-
-  /**
-   * Return filtered list for passing functions
-   * @param   {Number}    first
-   * @param   {Number}    last
-   * @param   {Function}  predicate
-   * @return  {Array}
-   */
-  function passChains (first, last, sequence) {
-    return sequence.map(function (el) {
-      return el._id;
-    }).slice(first, last + 1);
-  }
-
-  /**
-   * Return lastChain index
-   * @param   {Number}  first
-   * @return  {Number}
-   */
-  function lastChain (first, sequence) {
-    var index = getIndexOfNextEnvAppearance(first, PromisePipe.env, sequence);
-
-    return index === -1 ? (sequence.length - 1) : (index - 1);
-  }
-
-  /**
-   * Return tuple of chained indexes
-   * @param   {Number}  id
-   * @return  {Tuple}
-   */
-  function rangeChain (id, sequence) {
-    var first = getChainIndexById(id, sequence);
-
-    return [first, lastChain(first, sequence)];
-  }
-
   // Inside transition you describe how to send message from one
   // env to another within a Pipe call
   PromisePipe.envTransition = function(from, to, transition){
@@ -555,9 +458,153 @@ function PromisePipeFactory(){
   };
 
   // build a chain of promises
-  function doit(sequence, data, pipe, ctx){
+  function doit(sequence, data, pipe, ctx) {
+    return sequence.reduce(function(doWork, funcArr, funcIndex) {
+      var systemEnvs = {
+        both: {
+          predicate: function () {
+            return funcArr._env === 'both';
+          },
+          handler: function () {
+            var toNextEnv = getNameNextEnv(PromisePipe.env);
 
-    return sequence.reduce(function(doWork, funcArr){
+            if (!toNextEnv) {
+              return function (data) {
+                return funcArr(data);
+              };
+            }
+
+            return function () {
+              return doWork.then(funcArr).then(function () {
+                var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, funcArr._id, ctx._pipecallId);
+
+                var range = rangeChain(funcArr._id, sequence);
+
+                ctx._passChains = passChains(range[0]-1, range[0]-1);
+
+                return PromisePipe.envTransitions[ctx._env][toNextEnv].call(this, msg);
+              });
+            };
+          }
+        },
+        inherit: {
+          predicate: function () {
+            return funcArr._env === 'inherit';
+          },
+          handler: function () {
+            funcArr._env = sequence[funcIndex]._env;
+
+            return funcArr;
+          }
+        }
+      };
+
+      function getNameNextEnv(env) {
+        if (!PromisePipe.envTransitions[ctx._env]) {
+          return null;
+        }
+
+        return Object.keys(PromisePipe.envTransitions[ctx._env]).reduce(function (nextEnv, name) {
+          if (nextEnv) { return nextEnv; }
+
+          if (name === env) {
+            return nextEnv;
+          }
+
+          if (name !== env) {
+            return name;
+          }
+        }, null);
+      }
+
+      /**
+       * Get index of next env appearance
+       * @param   {Number}  fromIndex
+       * @param   {String}  env
+       * @return  {Number}
+       */
+      function getIndexOfNextEnvAppearance(fromIndex, env){
+        return sequence.map(function(el){
+          return el._env;
+        }).indexOf(env, fromIndex);
+      }
+
+      /**
+       * Check env of system behavoir
+       * @param   {String}  env Env for checking
+       * @return  {Boolean}
+       */
+      function isSystemTransition (env) {
+        return !!systemEnvs[env];
+      }
+
+      /**
+       * Check valid is transition
+       */
+      function isValidTransition (funcArr, ctx) {
+        var isValid = true;
+
+        if (!(PromisePipe.envTransitions[ctx._env] && PromisePipe.envTransitions[ctx._env][funcArr._env])) {
+          if (!isSystemTransition(funcArr._env)) {
+            isValid = false;
+          }
+        }
+
+        return isValid;
+      }
+
+      /**
+       * Return filtered list for passing functions
+       * @param   {Number}    first
+       * @param   {Number}    last
+       * @return  {Array}
+       */
+      function passChains (first, last) {
+        return sequence.map(function (el) {
+          return el._id;
+        }).slice(first, last + 1);
+      }
+
+      /**
+       * Return lastChain index
+       * @param   {Number}  first
+       * @return  {Number}
+       */
+      function lastChain (first) {
+        var index = getIndexOfNextEnvAppearance(first, PromisePipe.env, sequence);
+
+        return index === -1 ? (sequence.length - 1) : (index - 1);
+      }
+
+      /**
+       * Return tuple of chained indexes
+       * @param   {Number}  id
+       * @return  {Tuple}
+       */
+      function rangeChain (id) {
+        var first = getChainIndexById(id, sequence);
+
+        return [first, lastChain(first, sequence)];
+      }
+
+      /**
+       * Get chain by index
+       * @param {String}  id
+       * @param {Array}   sequence
+       */
+      function getChainIndexById(id){
+        return sequence.map(function(el){
+          return el._id;
+        }).indexOf(id);
+      }
+
+      function jump (range) {
+        return function (data) {
+          var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
+
+          return PromisePipe.envTransitions[ctx._env][funcArr._env].call(this, msg);
+        };
+      }
 
       /**
        * Jump to next env
@@ -566,17 +613,13 @@ function PromisePipeFactory(){
       function toNextEnv () {
         var range = rangeChain(funcArr._id, sequence);
 
-        ctx._passChains = passChains(range[0], range[1], sequence);
+        ctx._passChains = passChains(range[0], range[1]);
 
         if (!isValidTransition(funcArr, ctx)) {
           throw Error('there is no transition ' + ctx._env + ' to ' + funcArr._env);
         }
 
-        return function (data) {
-          var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
-
-          return PromisePipe.envTransitions[ctx._env][funcArr._env].call(this, msg);
-        };
+        return jump(range);
       }
 
       /**
@@ -633,11 +676,15 @@ function PromisePipeFactory(){
        * @return  {Function}
        */
       function doOnPropEnv () {
-        return Object.keys(PromisePipe.systemEnvs).reduce(function (chain, name, index, list) {
+        return Object.keys(systemEnvs).reduce(function (chain, name) {
 
           if (chain !== funcArr) {
             // fixed handler for current chain
             return chain;
+          }
+
+          if (systemEnvs[name].predicate(sequence, funcArr)) {
+            return systemEnvs[name].handler(sequence, funcArr, funcIndex, ctx);
           }
 
           if (goToNextEnv() && !skipChain()) {
@@ -648,9 +695,7 @@ function PromisePipeFactory(){
             return toNextChain();
           }
 
-          if (index === list.length - 1 && chain === funcArr) {
-            return chain;
-          }
+          return chain;
         }, funcArr);
       }
 
