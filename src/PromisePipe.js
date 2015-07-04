@@ -143,23 +143,6 @@ function PromisePipeFactory(){
       return result;
     };
 
-    result.all = function(){
-      //TODO: check how is this thing floating between envs
-      var pipes = [].slice.call(arguments);
-      var fn = function (data, context){
-        return Promise.all(pipes.map(function(pipe){
-          return pipe(data, context);
-        }));
-      };
-      var chain = {
-        func: fn,
-        _id: ID(),
-        name: "all."
-      };
-      sequence.push(chain);
-
-      return result;
-    };
     // join pipes
     result.join = function(){
       var pipers = [].slice.call(arguments);
