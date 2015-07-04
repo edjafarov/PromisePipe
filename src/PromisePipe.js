@@ -460,6 +460,7 @@ function PromisePipeFactory(){
   // build a chain of promises
   function doit(sequence, data, pipe, ctx) {
     return sequence.reduce(function(doWork, funcArr, funcIndex) {
+
       var systemEnvs = {
         both: {
           predicate: function () {
@@ -492,13 +493,22 @@ function PromisePipeFactory(){
             return funcArr._env === 'inherit';
           },
           handler: function () {
-            funcArr._env = sequence[funcIndex]._env;
+            var handler = function () {
+              return funcArr(data);
+            };
 
-            return funcArr;
+            handler._env = getNamePrevEnv(PromisePipe.env);
+
+            return handler;
           }
         }
       };
 
+      /**
+       * Return new of next env
+       * @param   {String}  env Current env name
+       * @return  {String}
+       */
       function getNameNextEnv(env) {
         if (!PromisePipe.envTransitions[ctx._env]) {
           return null;
@@ -509,6 +519,29 @@ function PromisePipeFactory(){
 
           if (name === env) {
             return nextEnv;
+          }
+
+          if (name !== env) {
+            return name;
+          }
+        }, null);
+      }
+
+      /**
+       * Return name of prev env
+       * @param   {String}  env Current env name
+       * @return  {String}
+       */
+      function getNamePrevEnv(env) {
+        if (!PromisePipe.envTransitions[ctx._env]) {
+          return null;
+        }
+
+        return Object.keys(PromisePipe.envTransitions[ctx._env]).reverse().reduce(function (prevName, name) {
+          if (prevName) { return prevName; }
+
+          if (name === env) {
+            return prevName;
           }
 
           if (name !== env) {
@@ -540,8 +573,9 @@ function PromisePipeFactory(){
 
       /**
        * Check valid is transition
+       * @return  {Boolean}
        */
-      function isValidTransition (funcArr, ctx) {
+      function isValidTransition () {
         var isValid = true;
 
         if (!(PromisePipe.envTransitions[ctx._env] && PromisePipe.envTransitions[ctx._env][funcArr._env])) {
@@ -598,6 +632,11 @@ function PromisePipeFactory(){
         }).indexOf(id);
       }
 
+      /**
+       * Default behavoir of jump to next env
+       * @param   {Array}   range Tuple of range for jump
+       * @return  {Promise}
+       */
       function jump (range) {
         return function (data) {
           var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
@@ -624,9 +663,10 @@ function PromisePipeFactory(){
 
       /**
        * Will we go to the next env
+       * @return {Boolean}
        */
       function goToNextEnv () {
-        return ctx._env !== funcArr._env;
+        return ctx._env !== funcArr._env && !isSystemTransition(funcArr._env);
       }
 
       //it shows error in console and passes it down
@@ -676,8 +716,7 @@ function PromisePipeFactory(){
        * @return  {Function}
        */
       function doOnPropEnv () {
-        return Object.keys(systemEnvs).reduce(function (chain, name) {
-
+        return Object.keys(systemEnvs).reduce(function (chain, name, i) {
           if (chain !== funcArr) {
             // fixed handler for current chain
             return chain;
@@ -695,7 +734,7 @@ function PromisePipeFactory(){
             return toNextChain();
           }
 
-          return chain;
+          return funcArr;
         }, funcArr);
       }
 
