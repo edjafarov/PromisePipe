@@ -103,22 +103,22 @@ describe('PromisePipe when comes to chains from other env', function(){
 					var ininnerMsg = JSON.parse(JSON.stringify(innerMsg));
 					ininnerMsg.data = data;
 					PromisePipe.execTransitionMessage(ininnerMsg);
-				})
+				});
 				return PromisePipe.promiseMessage(message);
-			})
+			});
 			pipe(data1, context).then(finish);
-			done()
-		})
+			done();
+		});
 		it('transition should create a message and pass it to server side, complete chain should pass', function(){
 			sinon.assert.calledOnce(fn2);
-			sinon.assert.calledOnce(fn3)
+			sinon.assert.calledOnce(fn3);
 			sinon.assert.calledOnce(fn1);
 			sinon.assert.calledOnce(fn4);
 			sinon.assert.calledWith(fn4, data2);
 			sinon.assert.calledWithExactly(finish, data2);
-		})
-	})
-})
+		});
+	});
+});
 
 
 describe('PromisePipe when comes to chains from other env', function(){
@@ -246,7 +246,7 @@ describe('PromisePipe (#24 bug test)', function(){
 })
 
 
-xdescribe('PromisePipe', function(){
+describe('PromisePipe', function(){
 	var PromisePipe = require('../src/PromisePipe')();
 	var PromisePipeServer = require('../src/PromisePipe')();
 	PromisePipeServer.setEnv('server');
@@ -289,7 +289,8 @@ xdescribe('PromisePipe', function(){
 					var ininnerMsg = JSON.parse(JSON.stringify(innerMsg));
 					ininnerMsg.data = data;
 					PromisePipe.execTransitionMessage(ininnerMsg);
-				})
+				});
+
 				return PromisePipe.promiseMessage(message);
 			})
 			pipe(data1, context).then(finish);
