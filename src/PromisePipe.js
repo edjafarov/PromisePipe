@@ -1,6 +1,7 @@
 var Promise = Promise || require('es6-promise').Promise;
 var stackTrace = require('stacktrace-js');
 var serialize = require('json-stringify-safe');
+var TransactionController = require('./TransactionController');
 
 function augumentContext(context, property, value){
   Object.defineProperty(context, property, {
@@ -26,7 +27,10 @@ function PromisePipeFactory(){
    * PromisePipe chain constructor
    * @param {Array} sequence  Sequence of chain functions
    */
-  function PromisePipe(sequence){
+  function PromisePipe(options, sequence){
+    if(Array.isArray(options)){
+      sequence = options;
+    }
     sequence = sequence || [];
 
     function result(data, context){
@@ -117,7 +121,15 @@ function PromisePipeFactory(){
 
     //promise pipe ID
     result._id = ID();
-    PromisePipe.pipes[result._id] = sequence;
+    PromisePipe.pipes[result._id] = {
+      seq: sequence,
+      name: options && options.name,
+      description: options && options.description,
+      Pipe: result
+    }
+
+
+
 
     // add function to the chain of a pipe
     result.then = function(fn){
@@ -334,6 +346,11 @@ function PromisePipeFactory(){
     };
   };
 
+
+
+
+  var TransactionHandler = TransactionController();
+
   PromisePipe.promiseMessage = function(message){
     return new Promise(function(resolve, reject){
       PromisePipe.messageResolvers[message.call] = {
@@ -347,27 +364,7 @@ function PromisePipeFactory(){
   // when you pass a message within a pipe to other env
   // you should
   PromisePipe.execTransitionMessage = function execTransitionMessage(message){
-
-    if(PromisePipe.messageResolvers[message.call]){
-
-      //inherit from coming message context
-      Object.keys(message.context).reduce(function(ctx, name){
-        ctx[name] = message.context[name];
-        return ctx;
-      }, PromisePipe.messageResolvers[message.call].context);
-
-      PromisePipe.messageResolvers[message.call].context._trace[message.call] = message._trace[message.call];
-
-      if(message.unhandledFail){
-        PromisePipe.messageResolvers[message.call].reject(message.data);
-        delete PromisePipe.messageResolvers[message.call];
-        return {then:function(){}};
-      }
-
-      PromisePipe.messageResolvers[message.call].resolve(message.data);
-      delete PromisePipe.messageResolvers[message.call];
-      return {then:function(){}};
-    }
+    if(TransactionHandler.processTransaction(message))return {then: function(){}}
 
     var context = message.context;
     context._env = PromisePipe.env;
@@ -377,7 +374,7 @@ function PromisePipeFactory(){
     augumentContext(context, '_pipecallId', message.call);
     augumentContext(context, '_trace', message._trace);
 
-    var sequence = PromisePipe.pipes[message.pipe];
+    var sequence = PromisePipe.pipes[message.pipe].seq;
     var chain = [].concat(sequence);
 
     var ids = chain.map(function(el){
@@ -405,6 +402,8 @@ function PromisePipeFactory(){
 
     return doit(newChain, message.data, {_id: message.pipe}, context).catch(unhandledCatch);
   };
+
+
 
   PromisePipe.createTransitionMessage = function createTransitionMessage(data, context, pipeId, chainId, envBackChainId, callId){
     return {
@@ -440,6 +439,9 @@ function PromisePipeFactory(){
     };
   };
 
+
+  //PromisePipe.api = require('./RemoteAPIHandlers')();
+
   // build a chain of promises
   function doit(sequence, data, pipe, ctx) {
     return sequence.reduce(function(doWork, funcArr, funcIndex) {
@@ -464,8 +466,10 @@ function PromisePipeFactory(){
                 var range = rangeChain(funcArr._id, sequence);
 
                 ctx._passChains = passChains(range[0]-1, range[0]-1);
-
-                return PromisePipe.envTransitions[ctx._env][toNextEnv].call(this, msg);
+                return TransactionHandler.createTransaction(msg)
+                  .send(PromisePipe.envTransitions[ctx._env][toNextEnv])
+                  .then(updateContextAfterTransition)
+                  .then(handleRejectAfterTransition)
               });
             };
           }
@@ -581,11 +585,30 @@ function PromisePipeFactory(){
         }).indexOf(id);
       }
 
+      //transition returns context in another object.
+      //we must preserve existing object and make changes accordingly
+      function updateContextAfterTransition(message){
+        //inherit from coming message context
+        Object.keys(message.context).reduce(function(context, name){
+          context[name] = message.context[name];
+          return context;
+        }, ctx);
+        return message;
+      }
+      function handleRejectAfterTransition(message){
+        return new Promise(function(resolve, reject){
+          if(message.unhandledFail) return reject(message.data);
+          resolve(message.data);
+        })
+      }
+
       function jump (range) {
         return function (data) {
           var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
-
-          return PromisePipe.envTransitions[ctx._env][funcArr._env].call(this, msg);
+          return TransactionHandler.createTransaction(msg)
+            .send(PromisePipe.envTransitions[ctx._env][funcArr._env])
+            .then(updateContextAfterTransition)
+            .then(handleRejectAfterTransition)
         };
       }
 
