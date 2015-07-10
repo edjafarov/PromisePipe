@@ -122,6 +122,7 @@ function PromisePipeFactory(){
     //promise pipe ID
     result._id = ID();
     PromisePipe.pipes[result._id] = {
+      id: result._id,
       seq: sequence,
       name: options && options.name,
       description: options && options.description,
@@ -775,6 +776,9 @@ function PromisePipeFactory(){
     // after the decimal.
     return counter.toString(36).substr(-8);
   }
+
+  PromisePipe.api = require('./RemoteAPIHandlers')(PromisePipe);
+
   return PromisePipe;
 }
 

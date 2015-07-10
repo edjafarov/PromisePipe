@@ -1,5 +1,5 @@
 var Promise = Promise || require('es6-promise').Promise;
-module.exports = function transactionController(){
+module.exports = function TransactionController(){
   var transactions = {};
   return {
     createTransaction: function createTransaction (message){

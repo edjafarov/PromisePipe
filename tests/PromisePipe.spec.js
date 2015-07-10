@@ -335,6 +335,7 @@ describe('PromisePipe composition 2 functions, and 2nd will be separate PromisPi
 			.then(innerPipe)
 			.then(fn3);
 
+
 	before(function(done){
 		pipe(data1, context).then(finish);
 		done()
