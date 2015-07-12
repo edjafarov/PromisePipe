@@ -3,7 +3,7 @@ var stackTrace = require('stacktrace-js');
 var serialize = require('json-stringify-safe');
 var TransactionController = require('./TransactionController');
 
-function augumentContext(context, property, value){
+function augmentContext(context, property, value){
   Object.defineProperty(context, property, {
     configurable: true,
     enumerable: false,
@@ -36,12 +36,12 @@ function PromisePipeFactory(){
     function result(data, context){
       context = context || {};
       // set Random PromisePipe call ID
-      augumentContext(context, '_pipecallId', Math.ceil(Math.random() * Math.pow(10, 16)));
+      augmentContext(context, '_pipecallId', Math.ceil(Math.random() * Math.pow(10, 16)));
       // set current PromisePipe env
-      augumentContext(context, '_env', PromisePipe.env);
+      augmentContext(context, '_env', PromisePipe.env);
       var _trace = {};
       _trace[context._pipecallId] = [];
-      augumentContext(context, '_trace', _trace);
+      augmentContext(context, '_trace', _trace);
 
       var toConcat = [sequence];
 
@@ -372,8 +372,8 @@ function PromisePipeFactory(){
     delete context._passChains;
 
     //get back contexts non enumerables
-    augumentContext(context, '_pipecallId', message.call);
-    augumentContext(context, '_trace', message._trace);
+    augmentContext(context, '_pipecallId', message.call);
+    augmentContext(context, '_trace', message._trace);
 
     var sequence = PromisePipe.pipes[message.pipe].seq;
     var chain = [].concat(sequence);
