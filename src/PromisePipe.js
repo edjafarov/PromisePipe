@@ -158,9 +158,7 @@ function PromisePipeFactory(){
 
     // join pipes
     result.join = function(){
-      var pipers = [].slice.call(arguments);
-
-      var sequences = pipers.map(function(pipe){
+      var sequences = [].map.call(arguments, function(pipe){
         return pipe._getSequence();
       });
 
