@@ -16,6 +16,7 @@ module.exports = {
     io.on('connection', function (err, socket, session) {
       socket.on('messageToServer', function (message) {
         message._socket = socket;
+        message.context = message.context || {};
         message.context.session = session;
         if(StreamHandler) {
           StreamHandler(message);

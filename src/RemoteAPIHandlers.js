@@ -7,7 +7,7 @@ module.exports = function(PromisePipe){
           connector.send(message);
         }
 
-        PromisePipe.pipes[message.id].Pipe(message.data, {}).then(end);
+        PromisePipe.pipes[message.id].Pipe(message.data, message.context || {}).then(end);
       })
       return generateClientAPI(apiName, PromisePipe);
     },

@@ -1,0 +1,19 @@
+<html>
+<head>
+
+	<link rel="stylesheet" href="/css/base.css">
+	<link rel="stylesheet" href="/css/index.css">
+	<script type="text/javascript" src="http://localhost:3333/ppApi"></script>
+</head>
+<body>
+
+	<div id="todo-app"></div>
+	<script type="text/javascript" src="/bundle.js"></script>
+	<script type="text/javascript">
+	
+	window.main = require('client');
+	//init app
+	window.main.getItems();
+</script>
+</body>
+</html>
