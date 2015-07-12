@@ -31,10 +31,10 @@ function PromisePipeFactory(){
     if(Array.isArray(options)){
       sequence = options;
     }
-    sequence = sequence || [];
+    sequence || (sequence = []);
 
     function result(data, context){
-      context = context || {};
+      context || (context = {});
       // set Random PromisePipe call ID
       augmentContext(context, '_pipecallId', Math.ceil(Math.random() * Math.pow(10, 16)));
       // set current PromisePipe env
@@ -293,7 +293,7 @@ function PromisePipeFactory(){
 
   // You can extend PromisePipe API with extensions
   PromisePipe.use = function(name, transformation, options){
-    options = options || {};
+    options || (options = {});
     if(!options._env) {
       options._env = PromisePipe.env;
     }
