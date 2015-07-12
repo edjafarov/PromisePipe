@@ -5,10 +5,10 @@ var TransactionController = require('./TransactionController');
 
 function augmentContext(context, property, value){
   Object.defineProperty(context, property, {
-    configurable: true,
-    enumerable: false,
+    value: value,
     writable: false,
-    value: value
+    enumerable: false,
+    configurable: true
   });
 }
 
