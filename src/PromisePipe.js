@@ -174,7 +174,7 @@ function PromisePipeFactory(){
     result = Object.keys(PromisePipe.transformations).reduce(function(thePipe, name){
       var customApi = PromisePipe.transformations[name];
       customApi._name = name;
-      if(typeof(customApi) === 'object'){
+      if(typeof customApi === 'object'){
         thePipe[name] = wrapObjectPromise(customApi, sequence, result);
       } else {
         thePipe[name] = wrapPromise(customApi, sequence, result);
@@ -190,7 +190,7 @@ function PromisePipeFactory(){
       if(apiname.charAt(0) === "_") return api;
       customApi[apiname]._env = customApi._env;
       customApi[apiname]._name = customApi._name +"."+ apiname;
-      if(typeof(customApi[apiname]) === 'object') {
+      if(typeof customApi[apiname] === 'object') {
         api[apiname] = wrapObjectPromise(customApi[apiname], sequence, result);
       } else {
         api[apiname] = wrapPromise(customApi[apiname], sequence, result);
