@@ -3,12 +3,12 @@ var stackTrace = require('stacktrace-js');
 var serialize = require('json-stringify-safe');
 var TransactionController = require('./TransactionController');
 
-function augumentContext(context, property, value){
+function augmentContext(context, property, value){
   Object.defineProperty(context, property, {
-    configurable: true,
-    enumerable: false,
+    value: value,
     writable: false,
-    value: value
+    enumerable: false,
+    configurable: true
   });
 }
 
@@ -31,17 +31,17 @@ function PromisePipeFactory(){
     if(Array.isArray(options)){
       sequence = options;
     }
-    sequence = sequence || [];
+    sequence || (sequence = []);
 
     function result(data, context){
-      context = context || {};
+      context || (context = {});
       // set Random PromisePipe call ID
-      augumentContext(context, '_pipecallId', Math.ceil(Math.random() * Math.pow(10, 16)));
+      augmentContext(context, '_pipecallId', Math.ceil(Math.random() * Math.pow(10, 16)));
       // set current PromisePipe env
-      augumentContext(context, '_env', PromisePipe.env);
+      augmentContext(context, '_env', PromisePipe.env);
       var _trace = {};
       _trace[context._pipecallId] = [];
-      augumentContext(context, '_trace', _trace);
+      augmentContext(context, '_trace', _trace);
 
       var toConcat = [sequence];
 
@@ -158,9 +158,7 @@ function PromisePipeFactory(){
 
     // join pipes
     result.join = function(){
-      var pipers = [].slice.call(arguments);
-
-      var sequences = pipers.map(function(pipe){
+      var sequences = [].map.call(arguments, function(pipe){
         return pipe._getSequence();
       });
 
@@ -176,7 +174,7 @@ function PromisePipeFactory(){
     result = Object.keys(PromisePipe.transformations).reduce(function(thePipe, name){
       var customApi = PromisePipe.transformations[name];
       customApi._name = name;
-      if(typeof(customApi) === 'object'){
+      if(typeof customApi === 'object'){
         thePipe[name] = wrapObjectPromise(customApi, sequence, result);
       } else {
         thePipe[name] = wrapPromise(customApi, sequence, result);
@@ -192,7 +190,7 @@ function PromisePipeFactory(){
       if(apiname.charAt(0) === "_") return api;
       customApi[apiname]._env = customApi._env;
       customApi[apiname]._name = customApi._name +"."+ apiname;
-      if(typeof(customApi[apiname]) === 'object') {
+      if(typeof customApi[apiname] === 'object') {
         api[apiname] = wrapObjectPromise(customApi[apiname], sequence, result);
       } else {
         api[apiname] = wrapPromise(customApi[apiname], sequence, result);
@@ -293,7 +291,7 @@ function PromisePipeFactory(){
 
   // You can extend PromisePipe API with extensions
   PromisePipe.use = function(name, transformation, options){
-    options = options || {};
+    options || (options = {});
     if(!options._env) {
       options._env = PromisePipe.env;
     }
@@ -372,8 +370,8 @@ function PromisePipeFactory(){
     delete context._passChains;
 
     //get back contexts non enumerables
-    augumentContext(context, '_pipecallId', message.call);
-    augumentContext(context, '_trace', message._trace);
+    augmentContext(context, '_pipecallId', message.call);
+    augmentContext(context, '_trace', message._trace);
 
     var sequence = PromisePipe.pipes[message.pipe].seq;
     var chain = [].concat(sequence);
