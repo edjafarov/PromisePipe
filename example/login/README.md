@@ -207,26 +207,11 @@
 В зависимости от результата validateData() мы показываем то или иное сообщение пользователю.
 Вот и все.
 
-<<<<<<< HEAD
     /* В случае успешной авторизации показываем сообщение */
     function success(){
       document.querySelector('.message_success').style.display = "block";
       document.querySelector('.message_fail').style.display = "none";
     }
-=======
-      /* В случае успешной авторизации показываем сообщение */
-      function success(){
-        document.querySelector('.message_success').style.display = "block";
-        document.querySelector('.message_fail').style.display = "none";
-      }
-    
-      /* В случае провала авторизации показываем сообщение */
-      function fail(){
-        document.querySelector('.message_success').style.display = "none";
-        document.querySelector('.message_fail').style.display = "block";
-      }
->>>>>>> 038b616ca5e7f6c8ed50c6b282ed22a263b3923f
-
     /* В случае провала авторизации показываем сообщение */
     function fail(){
       document.querySelector('.message_success').style.display = "none";
