@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Promice Pipe demo</title>
+  <style>
+    form{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -webkit-transform: translateX(-50%) translateY(-50%);
+      transform: translateX(-50%) translateY(-50%);
+      }
+    input{
+      display: block;
+      margin: 0 0 10px;
+    }
+    .message{
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <form action="/login/" method="post" class="login-form">
+    <input type="text" name="login" placeholder="Логин : Carmack" required="required">
+    <input type="password" name="password" placeholder="Пароль : iddqd" required="required">
+    <button type="submit">Вход</button>
+    <p class="message message_fail">Вы ошиблись при вводе логина или пароля.</p>
+    <p class="message message_success">Добро пожаловать!</p>
+  </form>
+
+  <script src="bundle.js"></script>
+
+</body>
+</html>
