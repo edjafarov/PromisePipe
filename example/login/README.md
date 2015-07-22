@@ -81,11 +81,11 @@
 
     /* Добавляем скрипт, общий для бекенда и фронтенда */
     var pipe = require('./common.js')
-        /* Подключаем скрипт коннектора промиспайпов */
+        /* Подключаем скрипт HTTP коннектора промиспайпов */
         , connectors = require('./node_modules/promise-pipe/example/connectors/HTTPDuplexStream')
         /* Получаем экземпляр промиспайпа, созданный в этом скрипте */
         , PromisePipe = pipe.PromisePipe
-    /* Указыаем какой транспорт используется */
+    /* Указыаем какой транспорт используется при переходе с сервера на клиент */
     PromisePipe.stream('server','client').connector(connectors.HTTPServerClientStream(app));
 
 Это позволит обрабатывать сервисную часть промиспайпов.
@@ -207,21 +207,17 @@
 В зависимости от результата validateData() мы показываем то или иное сообщение пользователю.
 Вот и все.
 
-  /* В случае успешной авторизации показываем сообщение */
-  function success(){
-    document.querySelector('.message_success').style.display = "block";
-    document.querySelector('.message_fail').style.display = "none";
-  }
+    /* В случае успешной авторизации показываем сообщение */
+    function success(){
+      document.querySelector('.message_success').style.display = "block";
+      document.querySelector('.message_fail').style.display = "none";
+    }
 
-  /* В случае провала авторизации показываем сообщение */
-  function fail(){
-    document.querySelector('.message_success').style.display = "none";
-    document.querySelector('.message_fail').style.display = "block";
-  }
-
-## Заключение
-
-
+    /* В случае провала авторизации показываем сообщение */
+    function fail(){
+      document.querySelector('.message_success').style.display = "none";
+      document.querySelector('.message_fail').style.display = "block";
+    }
 
 [1]: http://localhost:3000/
 [2]: http://browserify.org/
