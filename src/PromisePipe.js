@@ -293,7 +293,7 @@ function PromisePipeFactory(){
   PromisePipe.use = function(name, transformation, options){
     options || (options = {});
     transformation = transformation || function(){}
-    
+
     if(!options._env) {
       options._env = PromisePipe.env;
     }
@@ -317,18 +317,15 @@ function PromisePipeFactory(){
         //set transition
         PromisePipe.envTransition(from, to, function(message){
           strm.send(message);
-          console.log("SENT:", message);
           return PromisePipe.promiseMessage(message);
         });
 
         strm.listen(function(message){
-          console.log("GOT:", message);
           var context = message.context;
           var data = message.data;
           function end(data){
             message.context = context;
             message.data = data;
-            console.log("PROCESSED:", message);
             strm.send(message);
           }
           if(processor){
