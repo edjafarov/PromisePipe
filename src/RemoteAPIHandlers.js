@@ -7,15 +7,19 @@ module.exports = function(PromisePipe){
           connector.send(message);
         }
 
-        PromisePipe.pipes[message.id].Pipe(message.data, message.context || {}).then(end);
+        PromisePipe.pipes[message.id].Pipe(message.data, message.context || {}).catch(unhandledCatch).then(end);
+
+        //catch inside env
+        function unhandledCatch(data){
+          message.unhandledFail = data;
+          return data;
+        }
       })
       return generateClientAPI(apiName, PromisePipe);
-    },
-    get: function(){
-
     }
   }
 }
+
 
 var TransactionController = require('./TransactionController');
 

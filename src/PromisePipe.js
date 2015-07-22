@@ -292,6 +292,8 @@ function PromisePipeFactory(){
   // You can extend PromisePipe API with extensions
   PromisePipe.use = function(name, transformation, options){
     options || (options = {});
+    transformation = transformation || function(){}
+    
     if(!options._env) {
       options._env = PromisePipe.env;
     }

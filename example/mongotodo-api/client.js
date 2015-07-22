@@ -16,6 +16,7 @@ var prepareItem = function prepareItem(data, context){
     name: data,
     done: false
   }
+  return data;
   return item;
 }
 
