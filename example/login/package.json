@@ -1,0 +1,19 @@
+{
+  "name": "promisepipe_example",
+  "version": "1.0.0",
+  "description": "Пример использования ПромисПайпов. Авторизация пользователя.",
+  "main": "backend.js",
+  "dependencies": {
+    "body-parser": "^1.13.2",
+    "browserify": "^11.0.0",
+    "es6-promise": "^2.3.0",
+    "express": "^4.13.1",
+    "promise-pipe": "^0.1.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node node_modules/browserify/bin/cmd.js -r ./frontend.js -o bundle.js;node backend.js"
+  },
+  "author": "SilentImp <thesilentimp@gmail.com>",
+  "license": "ISC"
+}
