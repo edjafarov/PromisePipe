@@ -5,6 +5,9 @@ module.exports = function PPRouterFactory(){
   var router = new Router();
   var renderer = null;
   var stateConfig = {};
+  var initContext = function(){
+    return {};
+  }
 
   function PPRouter(){
     var args = Array.prototype.slice.call(arguments);
@@ -20,14 +23,22 @@ module.exports = function PPRouterFactory(){
 
     stateConfig[uniquePath] = {
       model: function(params, transition){
-        //console.log("doing " + uniquePath, transition);
-        return RoutePipe(null, {
+        transition._context = transition._context || {};
+        var handlerContext = Object.keys(transition._context).reduce(function(context, propName){
+          context[propName] = transition._context[propName]
+          return context;
+        }, {});
+
+        handlerContext.__proto__ = {
           params: params,
           transition: transition,
           id: prepareParents.join(''),
           config: stateConfig[uniquePath],
           parents: options.parents
-        }).then(function(data){
+        }
+        handlerContext.transition._context = undefined;
+        //console.log("doing " + uniquePath, transition._context);
+        return RoutePipe(null, handlerContext).then(function(data){
           if(!transition.renderData) transition.renderData = {};
           transition.renderData[uniquePath] = {
             data: data,
@@ -41,7 +52,14 @@ module.exports = function PPRouterFactory(){
       }
     }
 
-
+    function augmentContext(context, property, value){
+      Object.defineProperty(context, property, {
+        value: value,
+        writable: false,
+        enumerable: false,
+        configurable: true
+      });
+    }
     if(!options.match){
       router.map(function(match){
         match('/').to('', function(match){
@@ -81,7 +99,20 @@ module.exports = function PPRouterFactory(){
     if(!adapter) throw new Error("Adapter required");
     if(adapter.renderer) renderer = adapter.renderer;
     if(adapter.updateURL) router.updateURL;
-    adapter.handleURL = router.handleURL.bind(router)
+    if(adapter.initContext) initContext = adapter.initContext;
+    adapter.handleURL = function(url, context){
+      var handler = router.handleURL.call(router, url);
+      if(context) handler._context = context;
+      return new Promise(function(resolve, reject){
+        handler.then(function(){
+          resolve({
+            renderData: handler.renderData,
+            handler: handler
+          });
+        })
+      })
+
+    }
   }
 
   router.getHandler = function(name) {
