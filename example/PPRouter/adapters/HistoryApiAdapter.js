@@ -46,7 +46,6 @@ function HistoryApiAdapter(mount){
   function handle(){
     var localUrl = document.location.pathname + document.location.search;
     adapter.handleURL(localUrl).then(function(data){
-      console.log("rendering", adapter.renderer(data.renderData));
       return adapter.renderer(data.renderData);
     }).then(mount);
   }

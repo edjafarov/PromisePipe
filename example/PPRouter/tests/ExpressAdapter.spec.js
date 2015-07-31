@@ -83,7 +83,7 @@ describe('Router should use adapter and work with components', function(){
   componentRoot.returns("RenderedMockRoot");
   componentPosts.returns("RenderedMockPosts");
   componentID.returns("RenderedMockID");
-  
+
   PPRouter(function(PPRouter){
     PPRouter('/posts', function(PPRouter){
       PPRouter('/:id').component(componentID).then(postsId).then(renderMock("MockID"))

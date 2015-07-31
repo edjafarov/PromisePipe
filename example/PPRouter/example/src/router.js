@@ -2,52 +2,81 @@ import RouterFactory from  "../../index"
 
 var Router = RouterFactory();
 
+Router(function(Router){
+  Router('/items', function(Router){
+    Router('/:id').component(itemComp).then(getItem);
+  }).component(itemsComp).then(getItems);
+}).component(rootComp).then(count)
 
-function rootComp(params){
+
+function itemComp(params){
   return `<div>
-    <h1>The APP: <a href="/" onclick="router.transitionTo('/');return false;">${params.data}</a></h1>
-    <a href="/posts" onclick="router.transitionTo('/posts');return false;">Posts</a>
-
-    <a href="/items" onclick="router.transitionTo('/items');return false;">Items</a>
+    <label>ID: ${params.data.id}</label>
+    <h5>name: ${params.data.name}</h5>
+    <p>${params.data.description}</p>
     ${params.children || ''}
-  </div>`;
-}
-
-function postsComp(params){
-  return `<div>
-    <h3>Params</h3>
-    ${params.data || ''}
-  </div>`;
+  </div>`
 }
 
 function itemsComp(params){
+  var items = params.data.map(item => `<li><a href="/items/${item.id}">${item.name}</a></li>`).join("");
   return `<div>
-    <h3>Items</h3><a href="/items/new" onclick="router.transitionTo('/items/new');return false;">New</a>
-    ${params.data || ''}
-    <br/>
+    <ul>${items}</ul>
     ${params.children || ''}
-  </div>`;
+  </div>`
 }
 
-function newComp(params){
+
+function rootComp(params){
   return `<div>
-    <h5>New</h5>
-    ${params.data || ''}
-  </div>`;
+    <h1><a href="/">Router Example APP</a> (${params.data || 0})</h1>
+    <a href="/items">Items</a>
+    ${params.children || ''}
+  </div>`
 }
-Router(function(Router){
-  Router('/posts').component(postsComp).then(function(data, context){
-    return "Posts RESULT"
+
+function getItems(){
+  return new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve(Items);
+    }, 100);
   })
-  Router('/items', function(Router){
-    Router('/new').component(newComp).then(function(data, context){
-      return "NewItems"
-    })
-  }).component(itemsComp).then(function(data, context){
-    return "Items RESULT"
+}
+
+function getItem(data, context){
+  return Items.reduce(function(result, item){
+    if(result) return result;
+    if(item.id == context.params.id) return item;
+  }, null);
+}
+
+
+function count(){
+  return new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve(Items.length);
+    }, 100);
   })
-}).component(rootComp).then(function(){
-  return "TEST"
-})
+}
+
+
+var Items = [
+  {
+    id:1,
+    name: "Item1",
+    description: "The Item Description"
+  },
+  {
+    id:2,
+    name: "Item2",
+    description: "The Item2 Description"
+  },
+  {
+    id:3,
+    name: "Item3",
+    description: "The Item3 Description"
+  }
+
+];
 
 export var Router = Router;

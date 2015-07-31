@@ -13,7 +13,7 @@ module.exports = function PPRouterFactory(){
   function PPRouter(){
     var args = Array.prototype.slice.call(arguments);
     var options = typeof(args[0]) == 'object'?args.shift():{};
-    var stateId = typeof(args[0]) == 'string'?args.shift():'';
+    var stateId = typeof(args[0]) == 'string'?args.shift():'/';
     var handler = typeof(args[0]) == 'function'?args.shift():undefined;
 
     var RoutePipe = PromisePipe();
@@ -60,7 +60,7 @@ module.exports = function PPRouterFactory(){
         }
       }
     }
-    if(!uniquePath) stateConfig["/"] = stateConfig[uniquePath];
+
 
     function augmentContext(context, property, value){
       Object.defineProperty(context, property, {
@@ -71,15 +71,25 @@ module.exports = function PPRouterFactory(){
       });
     }
     if(!options.match){
-      router.map(function(match){
-        match('/').to('/', function(nmatch){
-          handler(PPRouter.bind(PPRouter, {
-            match: nmatch,
-            parents: prepareParents
-          }))
+      if(!!handler){
+        router.map(function(match){
+          match('/').to('/', function(nmatch){
+            handler(PPRouter.bind(PPRouter, {
+              match: nmatch,
+              parents: prepareParents
+            }))
+            PPRouter.call(PPRouter, {
+              match: nmatch,
+              parents: prepareParents,
+            }, "/");
+          })
         })
-        match('').to('');
-      })
+      } else {
+        router.map(function(match){
+          match('/').to('/');
+        })
+
+      }
     } else {
       if(!!handler){
         options.match(stateId).to(uniquePath, function(match){
@@ -106,6 +116,13 @@ module.exports = function PPRouterFactory(){
     return RoutePipe;
   }
 
+  PPRouter.prepareRenderData = function(state){
+    return Object.keys(state).reduce(function(result, key){
+      result[key].component = stateConfig[key].component;
+      return result;
+    }, state)
+  }
+
   PPRouter.use = function(adapter){
     if(!adapter) throw new Error("Adapter required");
     if(adapter.renderer) renderer = adapter.renderer;
@@ -114,9 +131,7 @@ module.exports = function PPRouterFactory(){
     if(adapter.initContext) initContext = adapter.initContext;
     adapter.handleURL = function(url, context){
       var handler = router.handleURL.call(router, url);
-      handler.catch(function(){
-        console.log("ERR!!", arguments)
-      });
+
       if(context) handler._context = context;
       return new Promise(function(resolve, reject){
         handler.then(function(){
@@ -125,27 +140,29 @@ module.exports = function PPRouterFactory(){
             handler: handler
           });
         })
+        handler.catch(function(err){
+          reject(err)
+        });
       })
     }
 
     if(adapter.handleTransition){
       var transitionTo = router.transitionTo;
       router.transitionTo = function(to, context){
-        console.log("transitionTo");
         var handler = transitionTo.call(router, to);
-        handler.catch(function(){
-          console.log("ERR!!", arguments)
-        });
+
         if(context) handler._context = context;
         return new Promise(function(resolve, reject){
-          console.log("PROMISE");
           handler.then(function(){
             resolve({
               renderData: handler.renderData,
               handler: handler
             });
           })
-        }).then(adapter.handleTransition).catch(function(e){console.log("AAA",e);});
+          handler.catch(function(err){
+            reject(err)
+          });
+        }).then(adapter.handleTransition).catch(function(e){console.log("Failed Handling",e);});
       }
     }
   }
@@ -155,6 +172,8 @@ module.exports = function PPRouterFactory(){
   };
 
   PPRouter.router = router;
+
+  PPRouter.PromisePipe = PromisePipe;
 
   return PPRouter;
 }

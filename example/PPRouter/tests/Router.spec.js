@@ -125,13 +125,14 @@ describe('Router', function(){
 	var itemsNew = sinon.stub();
 
   PPRouter(function(PPRouter){
-    PPRouter('/posts/', function(PPRouter){
-      PPRouter('/:id').then(postsId)
-      PPRouter('/new').then(postsNew)
+
+    PPRouter('posts', function(PPRouter){
+      PPRouter(':id').then(postsId)
+      PPRouter('new').then(postsNew)
     }).then(rootPosts)
     PPRouter('items', function(PPRouter){
-      PPRouter('/:id').then(itemsId)
-      PPRouter('/new').then(itemsNew)
+      PPRouter(':id').then(itemsId)
+      PPRouter('new').then(itemsNew)
     }).then(rootItems)
   }).then(root)
 
@@ -142,35 +143,42 @@ describe('Router', function(){
     })
     it('should trigger rootPosts chain', function(){
       sinon.assert.calledOnce(root);
+      sinon.assert.notCalled(rootPosts);
+      sinon.assert.notCalled(postsId);
+      sinon.assert.notCalled(postsNew);
+      sinon.assert.notCalled(rootItems);
+      sinon.assert.notCalled(itemsId);
+      sinon.assert.notCalled(itemsNew);
+    })
+    describe('with url /posts', function(){
+      before(function(done){
+        PPRouter.router.handleURL("/posts");
+        done();
+      })
+      it('should trigger rootPosts chain', function(){
+        sinon.assert.calledOnce(root);
+        sinon.assert.calledOnce(rootPosts);
+        sinon.assert.notCalled(postsId);
+        sinon.assert.notCalled(postsNew);
+        sinon.assert.notCalled(rootItems);
+        sinon.assert.notCalled(itemsId);
+        sinon.assert.notCalled(itemsNew);
+      })
+      describe('with url /', function(){
+        before(function(done){
+          PPRouter.router.handleURL("/");
+          done();
+        })
+        it('should trigger rootPosts chain', function(){
+          sinon.assert.calledOnce(root);
+          sinon.assert.calledOnce(rootPosts);
+          sinon.assert.notCalled(postsId);
+          sinon.assert.notCalled(postsNew);
+          sinon.assert.notCalled(rootItems);
+          sinon.assert.notCalled(itemsId);
+          sinon.assert.notCalled(itemsNew);
+        })
+      })
     })
   })
 })
-
-
-/*
-function log(data, context){
-  console.log(context)
-  return data;
-}
-
-var PPRouter = require('../index')();
-var root = sinon.stub();
-var rootPosts = sinon.stub();
-var postsId = sinon.stub();
-var postsNew = sinon.stub();
-var rootItems = sinon.stub();
-var itemsId = sinon.stub();
-var itemsNew = sinon.stub();
-function comp(){}
-
-  PPRouter(function(PPRouter){
-    PPRouter('/posts', function(PPRouter){
-      PPRouter('/:id').component(comp).then(postsId)
-      PPRouter('/new').component(comp).then(postsNew)
-    }).component(comp).then(rootPosts)
-    PPRouter('/items', function(PPRouter){
-      PPRouter('/:id').component(comp).then(itemsId)
-      PPRouter('/new').component(comp).then(itemsNew)
-    }).component(comp).then(rootItems)
-  }).then(root)
-*/

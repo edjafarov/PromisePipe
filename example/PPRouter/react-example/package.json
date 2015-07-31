@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "babel": "^5.8.12",
-    "express": "^4.13.1"
+    "express": "^4.13.1",
+    "react": "^0.13.3"
   }
 }
