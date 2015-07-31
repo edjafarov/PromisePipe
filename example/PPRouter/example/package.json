@@ -1,0 +1,20 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --ignore bundle.js node_modules/browserify/bin/cmd.js -r ./src/app.js:app -t babelify --outfile bundle.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babelify": "^6.1.3",
+    "browserify": "^11.0.0"
+  },
+  "dependencies": {
+    "babel": "^5.8.12",
+    "express": "^4.13.1"
+  }
+}
