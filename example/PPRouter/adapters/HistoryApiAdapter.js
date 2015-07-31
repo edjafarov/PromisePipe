@@ -1,5 +1,4 @@
-function ExpressAppAdapter(app, layout){
-  layout = layout || function(html){return html};
+function HistoryApiAdapter(mount){
   var adapter = {
     //renderData is a hash of data, params, and component
     // per resolved part of url
@@ -32,19 +31,33 @@ function ExpressAppAdapter(app, layout){
     }
   };
 
-  app.use(function(req, res, next){
-    if(req.method == 'GET'){
-      adapter.handleURL(req.originalUrl).then(function(data){
-        res.send(layout(adapter.renderer(data.renderData)) || "");
-        data.handler.router.reset();
-        res.end();
-      });
-      return;
-    }
-    next();
-  })
+  var currentRenderData;
 
+  adapter.handleTransition = function(data){
+
+    var renderData = Object.keys(data.handler.resolvedModels).reduce(function(result, key){
+      result[key] = data.renderData[key]?data.renderData[key]:currentRenderData[key];
+      return result;
+    }, {});
+    currentRenderData = renderData;
+    mount(adapter.renderer(renderData));
+  }
+
+  function handle(){
+    var localUrl = document.location.pathname + document.location.search;
+    adapter.handleURL(localUrl).then(function(data){
+      console.log("rendering", adapter.renderer(data.renderData));
+      return adapter.renderer(data.renderData);
+    }).then(mount);
+  }
+
+  adapter.updateURL = function(url) {
+    history.pushState(null, null, url);
+  };
+
+
+  window.onpopstate = handle;
   return adapter;
 }
 
-module.exports = ExpressAppAdapter;
+module.exports = HistoryApiAdapter;

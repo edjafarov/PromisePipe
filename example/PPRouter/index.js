@@ -1,5 +1,6 @@
 var Router = require('./router.js');
 var PromisePipe = require('../../src/PromisePipe')();
+var Promise = require('es6-promise').Promise;
 
 module.exports = function PPRouterFactory(){
   var router = new Router();
@@ -30,6 +31,7 @@ module.exports = function PPRouterFactory(){
         }, {});
 
         handlerContext.__proto__ = {
+          router: router,
           params: params,
           transition: transition,
           id: prepareParents.join(''),
@@ -37,10 +39,10 @@ module.exports = function PPRouterFactory(){
           parents: options.parents
         }
         handlerContext.transition._context = undefined;
-        //console.log("doing " + uniquePath, transition._context);
+
         return RoutePipe(null, handlerContext).then(function(data){
           if(!transition.renderData) transition.renderData = {};
-          transition.renderData[uniquePath] = {
+          transition.renderData[uniquePath || "/"] = {
             data: data,
             params: params,
             component: stateConfig[uniquePath].component
@@ -49,8 +51,16 @@ module.exports = function PPRouterFactory(){
       },
       enter: function(PP){
         return PP
+      },
+      //debugging
+      events: {
+        error: function(err){
+          console.log(arguments, "ERROR WHEN TRANSITION")
+          console.log(err.message)
+        }
       }
     }
+    if(!uniquePath) stateConfig["/"] = stateConfig[uniquePath];
 
     function augmentContext(context, property, value){
       Object.defineProperty(context, property, {
@@ -62,12 +72,13 @@ module.exports = function PPRouterFactory(){
     }
     if(!options.match){
       router.map(function(match){
-        match('/').to('', function(match){
+        match('/').to('/', function(nmatch){
           handler(PPRouter.bind(PPRouter, {
-            match: match,
+            match: nmatch,
             parents: prepareParents
           }))
         })
+        match('').to('');
       })
     } else {
       if(!!handler){
@@ -98,10 +109,14 @@ module.exports = function PPRouterFactory(){
   PPRouter.use = function(adapter){
     if(!adapter) throw new Error("Adapter required");
     if(adapter.renderer) renderer = adapter.renderer;
-    if(adapter.updateURL) router.updateURL;
+    if(adapter.updateURL) router.updateURL = adapter.updateURL;
+    if(router.reset) adapter.routerReset = router.reset;
     if(adapter.initContext) initContext = adapter.initContext;
     adapter.handleURL = function(url, context){
       var handler = router.handleURL.call(router, url);
+      handler.catch(function(){
+        console.log("ERR!!", arguments)
+      });
       if(context) handler._context = context;
       return new Promise(function(resolve, reject){
         handler.then(function(){
@@ -111,7 +126,27 @@ module.exports = function PPRouterFactory(){
           });
         })
       })
+    }
 
+    if(adapter.handleTransition){
+      var transitionTo = router.transitionTo;
+      router.transitionTo = function(to, context){
+        console.log("transitionTo");
+        var handler = transitionTo.call(router, to);
+        handler.catch(function(){
+          console.log("ERR!!", arguments)
+        });
+        if(context) handler._context = context;
+        return new Promise(function(resolve, reject){
+          console.log("PROMISE");
+          handler.then(function(){
+            resolve({
+              renderData: handler.renderData,
+              handler: handler
+            });
+          })
+        }).then(adapter.handleTransition).catch(function(e){console.log("AAA",e);});
+      }
     }
   }
 

@@ -11,7 +11,7 @@ describe('Router', function(){
 	var itemsNew = sinon.stub();
 
   PPRouter(function(PPRouter){
-    PPRouter('/posts/', function(PPRouter){
+    PPRouter('/posts', function(PPRouter){
       PPRouter('/:id').then(postsId)
       PPRouter('/new').then(postsNew)
     }).then(rootPosts)
@@ -109,6 +109,40 @@ describe('Router', function(){
   it('handleURL is a promise that is resolved when all handlers fulfuled', function(){
     sinon.assert.calledOnce(rootPosts);
     sinon.assert.calledOnce(postsId);
+  })
+})
+
+
+
+describe('Router', function(){
+  var PPRouter = require('../index')();
+  var root = sinon.stub();
+  var rootPosts = sinon.stub();
+	var postsId = sinon.stub();
+	var postsNew = sinon.stub();
+  var rootItems = sinon.stub();
+	var itemsId = sinon.stub();
+	var itemsNew = sinon.stub();
+
+  PPRouter(function(PPRouter){
+    PPRouter('/posts/', function(PPRouter){
+      PPRouter('/:id').then(postsId)
+      PPRouter('/new').then(postsNew)
+    }).then(rootPosts)
+    PPRouter('items', function(PPRouter){
+      PPRouter('/:id').then(itemsId)
+      PPRouter('/new').then(itemsNew)
+    }).then(rootItems)
+  }).then(root)
+
+  describe('with url /', function(){
+    before(function(done){
+      PPRouter.router.handleURL("/");
+      done();
+    })
+    it('should trigger rootPosts chain', function(){
+      sinon.assert.calledOnce(root);
+    })
   })
 })
 

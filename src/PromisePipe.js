@@ -716,7 +716,7 @@ function PromisePipeFactory(){
     return {
       bindIt: function bindIt(chain){
         var handler = chain.func;
-        var newArgFunc = function(data){
+        var newArgFunc = function newArgFunc(data){
           // advanced debugging
 
           if(PromisePipe._mode === 'DEBUG'){
@@ -743,7 +743,7 @@ function PromisePipeFactory(){
 
         newArgFunc._name = chain.name;
         Object.keys(chain).reduce(function(funObj, key){
-          funObj[key] = chain[key];
+          if (key !== 'name') funObj[key] = chain[key];
           return funObj;
         }, newArgFunc);
         return newArgFunc;
