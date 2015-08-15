@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --ignore bundle.js node_modules/browserify/bin/cmd.js -r ./src/app.js:app -t babelify --outfile bundle.js"
+    "dev": "nodemon --ignore bundle.js node_modules/browserify/bin/cmd.js -r ./src/app.js:app -t babelify --outfile bundle.js",
+    "start": "node node_modules/babel/bin/babel-node.js server"
   },
   "author": "",
   "license": "ISC",

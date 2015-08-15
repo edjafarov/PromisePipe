@@ -4,7 +4,8 @@
   "description": "##install",
   "main": "src/PromisePipe.js",
   "scripts": {
-    "test": "node node_modules/mocha/bin/mocha ./tests/**/*.spec.js"
+    "test": "node node_modules/mocha/bin/mocha ./tests/**/*.spec.js",
+    "standalone": "node node_modules/browserify/bin/cmd.js -s promisepipe -e src/PromisePipe.js -o ./promise-pipe.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
     "stacktrace-js": "^0.6.4"
   },
   "devDependencies": {
+    "browserify": "^11.0.1",
     "chai": "^2.3.0",
     "es6-promise": "~2.0.1",
     "mocha": "~2.1.0",
