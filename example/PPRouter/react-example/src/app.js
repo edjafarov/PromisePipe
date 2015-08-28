@@ -11,7 +11,10 @@ Router.use(FrontendAdapter);
 document.getElementById('content').onclick = function(e){
   e.preventDefault()
   e.stopPropagation();
-  if(e.target.nodeType == 1 && e.target.href && e.target.href.indexOf(document.location.origin) == 0 ) {//is a link
+  if(e.target.nodeType == 1
+      && e.target.href
+      && e.target.href.indexOf(document.location.origin) == 0
+      && document.location.pathname !== e.target.pathname) {//is a link
     Router.router.transitionTo(e.target.pathname)
   }
 }

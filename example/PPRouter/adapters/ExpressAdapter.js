@@ -7,6 +7,7 @@ function ExpressAppAdapter(app, layout){
       var renderArr = Object.keys(renderData).map(function(mask){
         return {
           mask: mask,
+          context: renderData[mask].context,
           component: renderData[mask].component,
           params: renderData[mask].params,
           data: renderData[mask].data
@@ -18,6 +19,7 @@ function ExpressAppAdapter(app, layout){
         if(renderArr.length > 0) partial.params.children = [renderComp(renderArr)];
         partial.params.mask = partial.mask;
         partial.params.data = partial.data;
+        partial.params.context = partial.context;
 
         if(!partial.component) {
           var result = partial.data || '';

@@ -24,6 +24,7 @@ module.exports = function PPRouterFactory(){
 
     stateConfig[uniquePath] = {
       model: function(params, transition){
+
         transition._context = transition._context || {};
         var handlerContext = Object.keys(transition._context).reduce(function(context, propName){
           context[propName] = transition._context[propName]
@@ -38,11 +39,10 @@ module.exports = function PPRouterFactory(){
           config: stateConfig[uniquePath],
           parents: options.parents
         }
-        handlerContext.transition._context = undefined;
-
         return RoutePipe(null, handlerContext).then(function(data){
           if(!transition.renderData) transition.renderData = {};
           transition.renderData[uniquePath || "/"] = {
+            context: handlerContext,
             data: data,
             params: params,
             component: stateConfig[uniquePath].component
@@ -133,6 +133,7 @@ module.exports = function PPRouterFactory(){
       var handler = router.handleURL.call(router, url);
 
       if(context) handler._context = context;
+
       return new Promise(function(resolve, reject){
         handler.then(function(){
           resolve({
@@ -152,6 +153,7 @@ module.exports = function PPRouterFactory(){
         var handler = transitionTo.call(router, to);
 
         if(context) handler._context = context;
+
         return new Promise(function(resolve, reject){
           handler.then(function(){
             resolve({
