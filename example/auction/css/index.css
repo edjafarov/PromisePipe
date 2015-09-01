@@ -1,0 +1,15 @@
+img{
+	width: 100%;
+}
+
+.auction-list li{
+	margin-bottom: 20px;
+}
+.auction-list h3{
+	margin-top: 0;
+}
+
+.auction-list .bid, .currentBid{
+	font-size: 2.5em;
+	color: #888;
+}
