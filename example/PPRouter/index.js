@@ -24,7 +24,6 @@ module.exports = function PPRouterFactory(){
 
     stateConfig[uniquePath] = {
       model: function(params, transition){
-
         transition._context = transition._context || {};
         var handlerContext = Object.keys(transition._context).reduce(function(context, propName){
           context[propName] = transition._context[propName]
@@ -39,6 +38,7 @@ module.exports = function PPRouterFactory(){
           config: stateConfig[uniquePath],
           parents: options.parents
         }
+
         return RoutePipe(null, handlerContext).then(function(data){
           if(!transition.renderData) transition.renderData = {};
           transition.renderData[uniquePath || "/"] = {
@@ -116,9 +116,10 @@ module.exports = function PPRouterFactory(){
     return RoutePipe;
   }
 
-  PPRouter.prepareRenderData = function(state){
+  PPRouter.prepareRenderData = function(state, context){
     return Object.keys(state).reduce(function(result, key){
       result[key].component = stateConfig[key].component;
+      if(context) result[key].context = context;
       return result;
     }, state)
   }

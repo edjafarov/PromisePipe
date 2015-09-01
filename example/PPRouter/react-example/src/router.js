@@ -40,7 +40,7 @@ Router(function(Router){
   Router("/items", function(Router){
     Router('/:id').component(React.createElement.bind(React, ItemComp)).then(getItem);
   }).component(React.createElement.bind(React, ItemsComp)).then(getItems);
-}).component(React.createElement.bind(React, RootComp)).then(count)
+}).component(React.createElement.bind(React, RootComp))
 
 
 

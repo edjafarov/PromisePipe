@@ -36,7 +36,6 @@ function HistoryApiAdapter(mount){
   var currentRenderData;
 
   adapter.handleTransition = function(data){
-
     var renderData = Object.keys(data.handler.resolvedModels).reduce(function(result, key){
       result[key] = data.renderData[key]?data.renderData[key]:currentRenderData[key];
       return result;

@@ -6,7 +6,7 @@ var TransactionController = require('./TransactionController');
 function augmentContext(context, property, value){
   Object.defineProperty(context, property, {
     value: value,
-    writable: false,
+    writable: true,
     enumerable: false,
     configurable: true
   });
@@ -85,6 +85,7 @@ function PromisePipeFactory(){
       });
 
       function showLevel(i, traceLog){
+        if(!traceLog[i]) return console.log("Tracelog is empty");
         var item = traceLog[i];
         var fnId = seqIds.indexOf(item.chainId);
         var name = '';
@@ -404,9 +405,12 @@ function PromisePipeFactory(){
 
 
   PromisePipe.createTransitionMessage = function createTransitionMessage(data, context, pipeId, chainId, envBackChainId, callId){
+    var contextToSend = {}
+    contextToSend.__proto__ = context;
+    delete contextToSend[context._env]
     return {
       data: data,
-      context: context,
+      context: contextToSend,
       pipe: pipeId,
       chains: [chainId, envBackChainId],
       call: callId,
@@ -442,7 +446,9 @@ function PromisePipeFactory(){
 
   // build a chain of promises
   function doit(sequence, data, pipe, ctx) {
+
     return sequence.reduce(function(doWork, funcArr, funcIndex) {
+
       var systemEnvs = {
         both: {
           predicate: function () {
@@ -603,10 +609,13 @@ function PromisePipeFactory(){
       function jump (range) {
         return function (data) {
           var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
-          return TransactionHandler.createTransaction(msg)
+
+          var result = TransactionHandler.createTransaction(msg)
             .send(PromisePipe.envTransitions[ctx._env][funcArr._env])
             .then(updateContextAfterTransition)
-            .then(handleRejectAfterTransition)
+            .then(handleRejectAfterTransition);
+
+          return result;
         };
       }
 
@@ -736,7 +745,6 @@ function PromisePipeFactory(){
               });
             }
           }
-
 
           return handler.call(that, data, that);
         };
