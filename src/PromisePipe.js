@@ -6,7 +6,7 @@ var TransactionController = require('./TransactionController');
 function augmentContext(context, property, value){
   Object.defineProperty(context, property, {
     value: value,
-    writable: true,
+    writable: false,
     enumerable: false,
     configurable: true
   });
@@ -405,8 +405,7 @@ function PromisePipeFactory(){
 
 
   PromisePipe.createTransitionMessage = function createTransitionMessage(data, context, pipeId, chainId, envBackChainId, callId){
-    var contextToSend = {}
-    contextToSend.__proto__ = context;
+    var contextToSend = JSON.parse(JSON.stringify(context));
     delete contextToSend[context._env]
     return {
       data: data,
@@ -594,7 +593,7 @@ function PromisePipeFactory(){
       function updateContextAfterTransition(message){
         //inherit from coming message context
         Object.keys(message.context).reduce(function(context, name){
-          context[name] = message.context[name];
+          if(name !== '_env') context[name] = message.context[name];
           return context;
         }, ctx);
         return message;

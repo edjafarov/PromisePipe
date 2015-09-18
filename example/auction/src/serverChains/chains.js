@@ -51,6 +51,7 @@ export var getItemsByIds = doOnServer((data, context)=>{
     return sequence.then((data)=>{
       return new Promise((resolve, reject)=>{
         client.hgetall('auction:items:' + id, (err, item)=>{
+          if(!item) item = {};
           item.id = id;
           data.push(item)
           resolve(data);
