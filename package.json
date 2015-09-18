@@ -1,6 +1,6 @@
 {
   "name": "promise-pipe",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "##install",
   "main": "src/PromisePipe.js",
   "scripts": {
