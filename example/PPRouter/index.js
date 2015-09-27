@@ -31,6 +31,7 @@ module.exports = function PPRouterFactory(){
         }, {});
 
         handlerContext.__proto__ = {
+          path: uniquePath,
           router: router,
           params: params,
           transition: transition,
