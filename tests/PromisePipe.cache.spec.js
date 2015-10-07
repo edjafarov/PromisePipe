@@ -37,7 +37,6 @@ describe('PromisePipe when comes to chains from other env', function(){
 		} else {
 			return cache['id:' + data];
 		}
-
 	}
 
 	var serverSocketMock = new EventEmitter();
