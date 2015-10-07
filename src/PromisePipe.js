@@ -12,8 +12,10 @@ function augmentContext(context, property, value){
   });
 }
 
-function PromisePipeFactory(){
-
+function PromisePipeFactory(options){
+  options = options || {
+    timeout: 2000
+  };
   /**
    * cleanup PromisePipe call ID/and env at the Pipe end
    */
@@ -361,7 +363,7 @@ function PromisePipeFactory(){
 
 
 
-  var TransactionHandler = TransactionController();
+  var TransactionHandler = TransactionController({timeout:options.timeout});
 
   PromisePipe.promiseMessage = function(message){
     return new Promise(function(resolve, reject){

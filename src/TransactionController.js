@@ -1,5 +1,7 @@
 var Promise = Promise || require('es6-promise').Promise;
-module.exports = function TransactionController(){
+module.exports = function TransactionController(options){
+  options = options || {};
+  var timeout = options.timeout || 2000;
   var transactions = {};
   return {
     createTransaction: function createTransaction (message){
@@ -10,7 +12,8 @@ module.exports = function TransactionController(){
           return new Promise(function(resolve, reject){
             //save transaction Resolvers
             transactions[message._transactionId] = {
-              resolve: resolve
+              resolve: resolve,
+              timeoutId: setTimeout(reject.bind(this, "message took more than " + timeout), timeout)
             }
             handler(message);
           })
@@ -22,6 +25,7 @@ module.exports = function TransactionController(){
         var id = transactionMessage._transactionId;
         delete transactionMessage._transactionId;
         transactions[id].resolve(transactionMessage);
+        clearTimeout(transactions[id].timeoutId);
         delete transactions[transactionMessage._transactionId]
         return true;
       }
