@@ -157,6 +157,19 @@ function PromisePipeFactory(){
       return result;
     };
 
+    // add catch to the chain of a pipe
+    result.cache = function(fn){
+      var chain = {
+        func: fn,
+        _id: ID(),
+        name: fn.name,
+        _env: 'cache'
+      };
+      sequence.push(chain);
+      return result;
+    };
+
+
     // join pipes
     result.join = function(){
       var sequences = [].map.call(arguments, function(pipe){
@@ -462,7 +475,7 @@ function PromisePipeFactory(){
               };
             }
 
-            return function () {
+            return function (data) {
               return doWork.then(funcArr).then(function () {
                 var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, funcArr._id, ctx._pipecallId);
 
@@ -485,6 +498,56 @@ function PromisePipeFactory(){
             funcArr._env = sequence[funcIndex]._env;
 
             return funcArr;
+          }
+        },
+        cache: {
+          predicate: function () {
+            return funcArr._env === 'cache';
+          },
+          handler: function () {
+            var toNextEnv = getNameNextEnv(PromisePipe.env);
+
+            if (!toNextEnv) {
+              return function (data) {
+                return funcArr(data);
+              };
+            }
+            var range = rangeChain(funcArr._id, sequence);
+            ctx._passChains = passChains(range[0]+1, range[1]);
+            return function (data) {
+              var handler = {};
+              function cacherFunc(data, context){
+                var cacheResult = new Promise(function(resolve, reject){
+          				handler.reject=reject;
+          				handler.resolve=resolve;
+          			});
+                var result = funcArr.call(this, data, context, cacheResult);
+                if(!result) {
+                  return function(cacheResult){
+          				  return handler.resolve(cacheResult);
+          			  }
+                } else {
+                  return result;
+                }
+              }
+              return doWork.then(cacherFunc).then(function (cacheResult) {
+                if(typeof(cacheResult) == "function"){
+                  var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, sequence[range[0]+1]._id, sequence[range[1]]._id, ctx._pipecallId);
+
+                  return TransactionHandler.createTransaction(msg)
+                    .send(PromisePipe.envTransitions[ctx._env][toNextEnv])
+                    .then(updateContextAfterTransition)
+                    .then(fillCache)
+                    .then(handleRejectAfterTransition)
+                    function fillCache(response){
+                      cacheResult(response.data);
+                      return response;
+                    }
+                } else {
+                  return cacheResult;
+                }
+              });
+            };
           }
         }
       };
@@ -539,7 +602,6 @@ function PromisePipeFactory(){
             isValid = false;
           }
         }
-
         return isValid;
       }
 
@@ -607,6 +669,7 @@ function PromisePipeFactory(){
 
       function jump (range) {
         return function (data) {
+
           var msg = PromisePipe.createTransitionMessage(data, ctx, pipe._id, funcArr._id, sequence[range[1]]._id, ctx._pipecallId);
 
           var result = TransactionHandler.createTransaction(msg)
@@ -688,16 +751,20 @@ function PromisePipeFactory(){
        * @return  {Function}
        */
       function doOnPropEnv () {
-        return Object.keys(systemEnvs).reduce(function (chain, name) {
 
+        var chain = Object.keys(systemEnvs).reduce(function (chain, name) {
           if (chain !== funcArr) {
             // fixed handler for current chain
             return chain;
           }
-
           if (systemEnvs[name].predicate(sequence, funcArr)) {
             return systemEnvs[name].handler(sequence, funcArr, funcIndex, ctx);
           }
+
+          return chain;
+        }, funcArr);
+
+        if(chain == funcArr){
 
           if (goToNextEnv() && !skipChain()) {
             return toNextEnv();
@@ -706,9 +773,8 @@ function PromisePipeFactory(){
           if (goToNextEnv() && skipChain()) {
             return toNextChain();
           }
-
-          return chain;
-        }, funcArr);
+        }
+        return chain;
       }
 
       if (funcArr && funcArr.isCatch) {
@@ -726,7 +792,7 @@ function PromisePipeFactory(){
         var handler = chain.func;
         var newArgFunc = function newArgFunc(data){
           // advanced debugging
-
+          var args = [].slice.call(arguments);
           if(PromisePipe._mode === 'DEBUG'){
             if(that._pipecallId && that._trace){
               var joinedContext = getProtoChain(that)
@@ -744,8 +810,8 @@ function PromisePipeFactory(){
               });
             }
           }
-
-          return handler.call(that, data, that);
+          args[1] = that;
+          return handler.apply(that, args);
         };
 
         newArgFunc._name = chain.name;
