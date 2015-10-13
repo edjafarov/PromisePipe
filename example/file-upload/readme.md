@@ -10,4 +10,6 @@ npm start
 ```
 
 * go to `http://localhost:3000`
-* play with todo
+* chose files in file input field
+* click save
+* check root dir of your app
