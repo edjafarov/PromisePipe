@@ -22,7 +22,6 @@ module.exports = {
 
 function getFormData(){
   return {
-    folderName: document.getElementById('folderName').value,
     files: document.getElementById('files').files
   }
 }
@@ -41,7 +40,6 @@ function saveFilesToFolder(data){
 
 
   function buildImagesList(data){
-
     var result = "";
     data = data || [];
     result+="<ul>";
