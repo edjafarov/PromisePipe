@@ -1,0 +1,18 @@
+<html>
+<head>
+</head>
+<body>
+	<h2>LOOK INTO CONSOLE</h2>
+	<div>
+		<input type="text" name="folderName" id="folderName"/>
+		<input type="file" name="files" id="files" multiple/>
+		<button onclick="main.saveItem();">save</button>
+	</div>
+	<div id="app"></div>
+
+	<script type="text/javascript" src="/bundle.js"></script>
+	<script type="text/javascript">
+	window.main = require('client');
+</script>
+</body>
+</html>
