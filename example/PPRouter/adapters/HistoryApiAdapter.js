@@ -1,4 +1,4 @@
-function HistoryApiAdapter(mount){
+function HistoryApiAdapter(mount, rootElement, context){
   var adapter = {
     //renderData is a hash of data, params, and component
     // per resolved part of url
@@ -44,19 +44,64 @@ function HistoryApiAdapter(mount){
     mount(adapter.renderer(renderData));
   }
 
-  function handle(){
+  function handlePop(event){
+    console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
+    /*
     var localUrl = document.location.pathname + document.location.search;
-    adapter.handleURL(localUrl).then(function(data){
+    adapter.handleURL(localUrl, context).then(function(data){
+      console.log(data.renderData, adapter.renderer(data.renderData));
       return adapter.renderer(data.renderData);
-    }).then(mount);
+    }).then(mount);*/
   }
 
   adapter.updateURL = function(url) {
     history.pushState(null, null, url);
   };
 
+  rootElement.onclick = function(e){
+    var a = e.target.href?e.target:upTo(e.target, "a");
+    if(a && a.nodeType == 1
+        && a.href
+        && a.href.indexOf(document.location.origin) == 0
+        && !a.hasAttribute('data-native')) {//is a link
+      e.preventDefault()
+      e.stopPropagation();
+      if(document.location.pathname !== a.pathname) {
+        //Router.router.transitionTo(a.pathname, context)
 
-  window.onpopstate = handle;
+        adapter.handleURL(a.pathname, context)
+        .then(function(data){
+          var stateObj = JSON.parse(JSON.stringify(data.renderData));
+          console.log(stateObj)
+          history.pushState(stateObj, "pageName", a.pathname)
+          return data;
+        }).then(function(data){
+          return adapter.renderer(data.renderData);
+        }).then(mount).catch(function(){
+          console.log('ALL FAILED', arguments);
+        });
+      }
+    }
+  }
+  // Find first ancestor of el with tagName
+  // or undefined if not found
+  function upTo(el, tagName) {
+    tagName = tagName.toLowerCase();
+
+    while (el && el.parentNode) {
+      el = el.parentNode;
+      if (el.tagName && el.tagName.toLowerCase() == tagName) {
+        return el;
+      }
+    }
+    // Many DOM methods return null if they don't
+    // find the element they are searching for
+    // It would be OK to omit the following and just
+    // return undefined
+    return null;
+  }
+
+  window.onpopstate = handlePop;
   return adapter;
 }
 

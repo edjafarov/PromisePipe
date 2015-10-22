@@ -132,6 +132,7 @@ module.exports = function PPRouterFactory(){
     if(router.reset) adapter.routerReset = router.reset;
     if(adapter.initContext) initContext = adapter.initContext;
     adapter.handleURL = function(url, context){
+
       var handler = router.handleURL.call(router, url);
 
       if(context) handler._context = context;

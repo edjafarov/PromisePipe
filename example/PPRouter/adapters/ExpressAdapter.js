@@ -36,7 +36,7 @@ function ExpressAppAdapter(app, layout){
 
   app.use(function(req, res, next){
     if(req.method == 'GET'){
-      adapter.handleURL(req.originalUrl).then(function(data){
+      adapter.handleURL(req.originalUrl, req.context).then(function(data){
         res.send(layout(adapter.renderer(data.renderData), data.renderData) || "");
         data.handler.router.reset();
         res.end();
