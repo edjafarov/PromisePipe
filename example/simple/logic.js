@@ -15,7 +15,6 @@ module.exports = PromisePipe()
 	.then(minus(6))
 	.then(doOnServer(plus(10)))
 	.then(doOnServer(multipy(2)))
-	.then(pow(3))
 	.then(doOnServer(minus(2)))
 	.then(minus(6))
 
