@@ -14,7 +14,8 @@ function augmentContext(context, property, value){
 
 function PromisePipeFactory(options){
   options = options || {
-    timeout: 2000
+    timeout: 2000,
+    logger: console,
   };
   /**
    * cleanup PromisePipe call ID/and env at the Pipe end
@@ -102,7 +103,6 @@ function PromisePipeFactory(options){
         }
         console.groupEnd('.then(' + name + ')');
       }
-
       if(console.group){
         showLevel(0, traceLog);
       } else {
@@ -706,7 +706,7 @@ function PromisePipeFactory(options){
         return ctx._env !== funcArr._env;
       }
 
-      //it shows error in console and passes it down
+      //it shows error in options.logger and passes it down
       function errorEnhancer(data){
         //is plain Error and was not yet caught
         if(data instanceof Error && !data.caughtOnChainId){
@@ -714,10 +714,10 @@ function PromisePipeFactory(options){
 
           var trace = stackTrace({e: data});
           if(funcArr._name) {
-            console.log('Failed inside ' + funcArr._name);
+            options.logger.log('Failed inside ' + funcArr._name);
           }
-          console.log(data.toString());
-          console.log(trace.join('\n'));
+          options.logger.log(data.toString());
+          options.logger.log(trace.join('\n'));
         }
         return Promise.reject(data);
       }
