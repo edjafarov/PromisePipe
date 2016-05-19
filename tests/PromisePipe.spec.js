@@ -1,6 +1,6 @@
-var PromisePipe = require('../src/PromisePipe')();
+var PromisePipe = require('../src/NewPromisePipe')();
 var sinon = require('sinon');
-var Promise = require('es6-promise').Promise;
+//var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
 
 describe('PromisePipe with 3 functions when called', function(){

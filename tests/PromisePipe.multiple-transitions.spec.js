@@ -6,9 +6,9 @@ var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/PromisePipe')();
-	var PromisePipeServer = require('../src/PromisePipe')();
-	var PromisePipeWorker = require('../src/PromisePipe')();
+	var PromisePipe = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipeWorker = require('../src/NewPromisePipe')();
 	PromisePipeServer.setEnv('server');
 	PromisePipeWorker.setEnv('worker');
 
@@ -50,12 +50,12 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 	PromisePipe.envTransition('client', 'server', function(message){
 		sendToServer(message);
-		return PromisePipe.promiseMessage(message);
+		//return PromisePipe.promiseMessage(message);
 	});
 
 	PromisePipeServer.envTransition('server', 'worker', function(message){
 		sendToWorker(message);
-		return PromisePipeServer.promiseMessage(message);
+		//return PromisePipeServer.promiseMessage(message);
 	});
 
 	clientSocketMock.on('message', function(message){
@@ -139,9 +139,9 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/PromisePipe')();
-	var PromisePipeServer = require('../src/PromisePipe')();
-	var PromisePipeWorker = require('../src/PromisePipe')();
+	var PromisePipe = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipeWorker = require('../src/NewPromisePipe')();
 	PromisePipeServer.setEnv('server');
 	PromisePipeWorker.setEnv('worker');
 
@@ -184,12 +184,13 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 	PromisePipe.envTransition('client', 'server', function(message){
 		sendToServer(message);
-		return PromisePipe.promiseMessage(message);
+		//return PromisePipe.promiseMessage(message);
 	});
 
 	PromisePipeServer.envTransition('server', 'worker', function(message){
 		sendToWorker(message);
-		return PromisePipeServer.promiseMessage(message);
+
+		//return PromisePipeServer.promiseMessage(message);
 	});
 
 	clientSocketMock.on('message', function(message){
@@ -270,10 +271,10 @@ xdescribe('PromisePipe can find its way through complex nested transition #22', 
 	thus some protocol is required that will predict behavior of execution
 	and will build a path or something
 	*/
-	var PromisePipe = require('../src/PromisePipe')();
-	var PromisePipeServer = require('../src/PromisePipe')();
-	var PromisePipeWorker1 = require('../src/PromisePipe')();
-	var PromisePipeWorker2 = require('../src/PromisePipe')();
+	var PromisePipe = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipeWorker1 = require('../src/NewPromisePipe')();
+	var PromisePipeWorker2 = require('../src/NewPromisePipe')();
 	PromisePipeServer.setEnv('server');
 	PromisePipeWorker1.setEnv('worker1');
 	PromisePipeWorker2.setEnv('worker2');
@@ -321,19 +322,19 @@ xdescribe('PromisePipe can find its way through complex nested transition #22', 
 
 	PromisePipe.envTransition('client', 'server', function(message){
 		sendToServer(message);
-		return PromisePipe.promiseMessage(message);
+		//return PromisePipe.promiseMessage(message);
 	});
 
 	PromisePipeServer.envTransition('server', 'worker1', function(message){
 		sendToWorker1(message);
-		return PromisePipeServer.promiseMessage(message);
+		//return PromisePipeServer.promiseMessage(message);
 	});
 
 	PromisePipeWorker1.envTransition('worker1', 'worker2', 'server');
 
 	PromisePipeServer.envTransition('server', 'worker2', function(message){
 		sendToWorker2(message);
-		return PromisePipeServer.promiseMessage(message);
+		//return PromisePipeServer.promiseMessage(message);
 	});
 
 	clientSocketMock.on('message', function(message){

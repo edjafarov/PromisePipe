@@ -56,11 +56,13 @@ function PromisePipeFactory(options){
         };
         toConcat.push(debugChain);
       }
+
       var cleanupChain = {
         func: cleanup,
         _id: ID(),
         _env: PromisePipe.env
       };
+
       toConcat.push(cleanupChain);
 
       var chain = [].concat.apply([], toConcat);
@@ -359,9 +361,6 @@ function PromisePipeFactory(options){
       }
     };
   };
-
-
-
 
   var TransactionHandler = TransactionController({timeout:options.timeout});
 

@@ -1,6 +1,6 @@
-var PromisePipe = require('../src/PromisePipe')();
+var PromisePipe = require('../src/NewPromisePipe')();
 PromisePipe.setMode('DEBUG');
-var PromisePipeServer = require('../src/PromisePipe')();
+var PromisePipeServer = require('../src/NewPromisePipe')();
 PromisePipeServer.setMode('DEBUG');
 var expect = require('chai').expect;
 PromisePipeServer.env = 'server';
@@ -45,7 +45,6 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 	PromisePipe.envTransition('client', 'server', function(message){
 		sendToServer(message);
-		return PromisePipe.promiseMessage(message);
 	});
 
 

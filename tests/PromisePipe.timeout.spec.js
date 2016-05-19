@@ -4,8 +4,8 @@ var expect = require('chai').expect;
 
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/PromisePipe')({timeout: 30});
-	var PromisePipeServer = require('../src/PromisePipe')({timeout: 30});
+	var PromisePipe = require('../src/NewPromisePipe')({timeout: 30});
+	var PromisePipeServer = require('../src/NewPromisePipe')({timeout: 30});
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;

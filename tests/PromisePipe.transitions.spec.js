@@ -4,8 +4,8 @@ var expect = require('chai').expect;
 
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/PromisePipe')();
-	var PromisePipeServer = require('../src/PromisePipe')();
+	var PromisePipe = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/NewPromisePipe')();
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;
@@ -64,8 +64,8 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/PromisePipe')();
-	var PromisePipeServer = require('../src/PromisePipe')();
+	var PromisePipe = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/NewPromisePipe')();
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;
@@ -81,7 +81,7 @@ describe('PromisePipe when comes to chains from other env', function(){
 	var finish = sinon.spy();
 
 	fn1.withArgs(data1, context).returns(data1);
-		fn2.withArgs(data1).returns(Promise.reject("failTest"));
+	fn2.withArgs(data1).returns(Promise.reject("failTest"));
 	fn3.withArgs(data2).returns(data2);
 	fn4.withArgs(data1, context).returns(data1);
 	fn4.withArgs(data2, context).returns(data2);
@@ -110,7 +110,7 @@ describe('PromisePipe when comes to chains from other env', function(){
 					ininnerMsg.data = data;
 					PromisePipe.execTransitionMessage(ininnerMsg);
 				})
-				return PromisePipe.promiseMessage(message);
+				//return PromisePipe.promiseMessage(message);
 			})
 			pipe(data1, context).then(finish);
 			done()
@@ -129,8 +129,8 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 describe('PromisePipe (#24 bug test)', function(){
 
-	var PromisePipe = require('../src/PromisePipe')();
-	var PromisePipeServer = require('../src/PromisePipe')();
+	var PromisePipe = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/NewPromisePipe')();
 	var doOnServer = PromisePipe.in('server');
 	PromisePipeServer.setEnv('server');
 	var context = {};
@@ -172,7 +172,6 @@ describe('PromisePipe (#24 bug test)', function(){
 					ininnerMsg.data = data;
 					PromisePipe.execTransitionMessage(ininnerMsg);
 				})
-				return PromisePipe.promiseMessage(message);
 			})
 			pipe(data1, context).then(finish);
 			done()
@@ -189,8 +188,8 @@ describe('PromisePipe (#24 bug test)', function(){
 
 
 describe('PromisePipe', function(){
-	var PromisePipe = require('../src/PromisePipe')();
-	var PromisePipeServer = require('../src/PromisePipe')();
+	var PromisePipe = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/NewPromisePipe')();
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;
@@ -199,6 +198,17 @@ describe('PromisePipe', function(){
 	var fn2 = sinon.stub();
 	var fn3 = sinon.stub();
 	var fn4 = sinon.stub();
+
+	function fn2(data) {
+		console.log(data, "1212");
+		return data;
+	}
+
+
+	function fn3(data) {
+		console.log(data, "1212");
+		return data;
+	}
 
 	fn2._env = 'both';
 	fn3._env = 'server';
@@ -232,8 +242,6 @@ describe('PromisePipe', function(){
 					ininnerMsg.data = data;
 					PromisePipe.execTransitionMessage(ininnerMsg);
 				});
-
-				return PromisePipe.promiseMessage(message);
 			})
 			pipe(data1, context).then(finish);
 			done()

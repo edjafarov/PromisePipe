@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/edjafarov/PromisePipe",
   "dependencies": {
+    "debug": "^2.2.0",
     "es6-promise": "~2.0.1",
     "json-stringify-safe": "^5.0.1",
     "stacktrace-js": "^0.6.4"
