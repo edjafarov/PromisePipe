@@ -7,7 +7,7 @@ describe('PromisePipe with 3 functions when called', function(){
 
   var hook;
 
-  var PromisePipe = require('../src/NewPromisePipe')();
+  var PromisePipe = require('../src/PromisePipe')();
 
   var context = {};
   var data1 = 1;
@@ -53,7 +53,7 @@ describe('PromisePipe with custom logger', function () {
   var logger = {
     log: sinon.stub(),
   };
-  var PromisePipe = require('../src/NewPromisePipe')({
+  var PromisePipe = require('../src/PromisePipe')({
     logger: logger
   });
   var context = {};

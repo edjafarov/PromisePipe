@@ -4,8 +4,8 @@ var expect = require('chai').expect;
 
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/NewPromisePipe')();
-	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;
@@ -64,8 +64,8 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/NewPromisePipe')();
-	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;
@@ -110,7 +110,6 @@ describe('PromisePipe when comes to chains from other env', function(){
 					ininnerMsg.data = data;
 					PromisePipe.execTransitionMessage(ininnerMsg);
 				})
-				//return PromisePipe.promiseMessage(message);
 			})
 			pipe(data1, context).then(finish);
 			done()
@@ -129,8 +128,8 @@ describe('PromisePipe when comes to chains from other env', function(){
 
 describe('PromisePipe (#24 bug test)', function(){
 
-	var PromisePipe = require('../src/NewPromisePipe')();
-	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
 	var doOnServer = PromisePipe.in('server');
 	PromisePipeServer.setEnv('server');
 	var context = {};
@@ -188,8 +187,8 @@ describe('PromisePipe (#24 bug test)', function(){
 
 
 describe('PromisePipe', function(){
-	var PromisePipe = require('../src/NewPromisePipe')();
-	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;

@@ -1,4 +1,4 @@
-var PromisePipe = require('../src/NewPromisePipe')();
+var PromisePipe = require('../src/PromisePipe')();
 var sinon = require('sinon');
 //var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;

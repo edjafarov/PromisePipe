@@ -221,12 +221,11 @@ addItemAction(item) // will pass complete chain
 ```
 
 ###PromisePipe.envTransition(from, to, handler)
-Setting transition of a message between environments. `from` and `to` are environments names. For example 'client' and 'server'. `handler` is a function that passes the message to other env and returns a `PromisePipe.promiseMessage(message)`. PromiseMessage is used to watch the call to be back from server.
+Setting transition of a message between environments. `from` and `to` are environments names. For example 'client' and 'server'. `handler` is a function that passes the message to other env.
 
 ```javascript
 PromisePipe.envTransition('client', 'server', function(message){
   // here you need to put a logic that sends message to server env
-  return PromisePipe.promiseMessage(message);
 })
 ```
 ###PromisePipe.execTransitionMessage(message)

@@ -7,8 +7,8 @@ var expect = require('chai').expect;
 
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/NewPromisePipe')();
-	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
 
 	PromisePipeServer.setEnv('server');
 
@@ -185,7 +185,6 @@ describe('PromisePipe when are server chains cached', function(){
 
 	PromisePipe.envTransition('client', 'server', function(message){
 		sendToServer(message);
-		return PromisePipe.promiseMessage(message);
 	});
 
 	clientSocketMock.on('message', function(message){

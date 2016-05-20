@@ -3,8 +3,8 @@ var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
 
 describe('PromisePipe when comes to chains from other env', function(){
-	var PromisePipe = require('../src/NewPromisePipe')();
-	var PromisePipeServer = require('../src/NewPromisePipe')();
+	var PromisePipe = require('../src/PromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
 	PromisePipeServer.setEnv('server');
 	var context = {};
 	var data1 = 1;

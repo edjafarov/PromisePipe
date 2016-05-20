@@ -1,6 +1,6 @@
-var PromisePipe = require('../src/NewPromisePipe')();
+var PromisePipe = require('../src/PromisePipe')();
 PromisePipe.setMode('DEBUG');
-var PromisePipeServer = require('../src/NewPromisePipe')();
+var PromisePipeServer = require('../src/PromisePipe')();
 PromisePipeServer.setMode('DEBUG');
 var expect = require('chai').expect;
 PromisePipeServer.env = 'server';

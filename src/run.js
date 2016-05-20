@@ -1,4 +1,4 @@
-var PromisePipeFactory = require('./NewPromisePipe');
+var PromisePipeFactory = require('./PromisePipe');
 var PromisePipe = PromisePipeFactory();
 
 PromisePipe.use('log', {a:function(data, context, variable){

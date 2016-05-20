@@ -3,8 +3,8 @@ describe('PromisePipe when comes to chains from other env', function(){
 	var EventEmitter = require('events').EventEmitter;
 	var messageBus = new EventEmitter();
 
-	var PromisePipeServer = require('../src/NewPromisePipe')();
-	var PromisePipeClient = require('../src/NewPromisePipe')();
+	var PromisePipeServer = require('../src/PromisePipe')();
+	var PromisePipeClient = require('../src/PromisePipe')();
 
 	var context = {};
 	var data1 = 1;
