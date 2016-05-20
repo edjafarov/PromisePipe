@@ -29,3 +29,31 @@ test(2, k).then((data) => {
 }).catch((e) => {
   console.log(e,"!")
 })
+PromisePipe().then().then().channel((data, context)=>{
+  this.emit()
+}, (data, context)=>{
+  this.on()
+});
+//get prev, get This
+//serverN, client
+
+
+client
+  send
+  listen
+
+ser1
+  send
+  listen
+
+ser2
+  send
+  listen
+
+client-server
+ser1-ser2
+
+client.send => ser1.listen => ser1.send => ser2.listen  {channelOpen}
+  => ser2.send => ser1.listen => ser1.send => client.listen
+
+  ser2.send => ser1.listen => ser2.send => client.listen
