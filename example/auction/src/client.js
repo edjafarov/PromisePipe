@@ -18,7 +18,7 @@ PromisePipe.stream('client','server').connector(connectors.SIOClientServerStream
 function mount(data){
   React.render(data, document.getElementById('content'));
 }
-var FrontendAdapter = HistoryApiAdapter(mount);
+var FrontendAdapter = HistoryApiAdapter(mount, document.getElementById('content'));
 Router.use(FrontendAdapter);
 
 var context = {client: new EventEmitter};

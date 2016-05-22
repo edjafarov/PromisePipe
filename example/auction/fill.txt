@@ -1,0 +1,33 @@
+set auction:items:index 4
+
+hmset auction:items:0 name itm1 description desc1 startBid 100 img img-1.jpg
+
+set auction:items:0:bids:index 0
+
+hmset auction:items:1 name itm2 description desc2 startBid 101 img img-2.jpg
+
+set auction:items:1:bids:index 0
+
+hmset auction:items:2 name itm3 description desc3 startBid 102 img img-3.jpg
+
+set auction:items:2:bids:index 0
+
+hmset auction:items:3 name itm4 description desc4 startBid 103 img img-4.jpeg
+
+set auction:items:3:bids:index 0
+
+hmset auction:items:4 name itm5 description desc5 startBid 104 img img-5.jpeg
+
+set auction:items:4:bids:index 0
+
+del auction:items:0:bids:index
+
+del auction:items:1:bids:index
+
+del auction:items:2:bids:index
+
+del auction:items:3:bids:index
+
+del auction:items:4:bids:index
+
+del auction:items:5:bids:index

@@ -46,6 +46,7 @@ class ItemComp extends React.Component {
       requestChange: this.handleBid.bind(this)
     };
     var bids = this.state.item.bids || [];
+    console.log(this.state)
     return <div className="row">
       <div className="col-md-4">
         <img src={"/images/" + this.state.item.img}/>
@@ -58,7 +59,7 @@ class ItemComp extends React.Component {
         <label className="currentBid">Bid: {this.state.item.bids[0]?this.state.item.bids[0].bid:this.state.item.startBid}&euro;</label>
         <form onSubmit={this.makeABid.bind(this)} className="form-inline">
           <div class="form-group"><input type="bid" valueLink={valueLinkBid} className="form-control"/></div><br/>
-          <input type="submit" value="Make A Bid" className="btn btn-primary" disabled={!this.state.me.id || !this.state.item.bids[0] || this.state.me.id == +this.state.item.bids[0].uid}/>
+          <input type="submit" value="Make A Bid" className="btn btn-primary" disabled={!this.state.me.login || (this.state.item.bids[0] && this.state.me.id == +this.state.item.bids[0].uid)}/>
         </form>
         <div>Bidders:</div>
         <ul className="list-unstyled">

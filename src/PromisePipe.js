@@ -291,6 +291,39 @@ module.exports = function PromisePipeFactory(options = {}) {
     };
   };
 
+
+  PromisePipe.stream = function(from, to, processor){
+    return {
+      connector: function(strm){
+        //set transition
+        PromisePipe.envTransition(from, to, function(message){
+          strm.send(message);
+        });
+
+        strm.listen(function(message){
+          var context = message.context;
+          var data = message.data;
+          function end(data){
+            message.context = context;
+            message.data = data;
+            strm.send(message);
+          }
+          if(processor){
+            function executor(data, context){
+              message.data = data;
+              message.context = context;
+              return PromisePipe.execTransitionMessage(message);
+            }
+            var localContext = {};
+            localContext.__proto__= context;
+            return processor(data, localContext, executor, end);
+          }
+          return PromisePipe.execTransitionMessage(message).then(end);
+        });
+      }
+    };
+  };
+
   PromisePipe.api = require('./RemoteAPIHandlers')(PromisePipe);
 
   return PromisePipe;

@@ -43,7 +43,7 @@ describe('PromisePipe with 3 functions when called', function(){
 
     expect(/Failed inside test/.test(hook.captured())).to.be.ok;
     expect(/ReferenceError: ff is not defined/.test(hook.captured())).to.be.ok;
-    expect(/PromisePipe.error.spec.js:/.test(hook.captured())).to.be.ok;
+    expect(/error.PromisePipe.spec.js:/.test(hook.captured())).to.be.ok;
     hook.unhook();
   });
 });
@@ -95,7 +95,7 @@ describe('PromisePipe with custom logger', function () {
     expect(logger.log.callCount).to.be.eql(3);
     expect(/Failed inside test/.test(logger.log.firstCall.args[0])).to.be.ok;
     expect(/ReferenceError: ff is not defined/.test(logger.log.secondCall.args[0])).to.be.ok;
-    expect(/PromisePipe.error.spec.js:/.test(logger.log.thirdCall.args[0])).to.be.ok;
+    expect(/error.PromisePipe.spec.js:/.test(logger.log.thirdCall.args[0])).to.be.ok;
     expect(hook.captured()).to.be.eql('');
   });
 
