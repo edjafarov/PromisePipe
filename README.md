@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/edjafarov/PromisePipe.svg?branch=master)](https://travis-ci.org/edjafarov/PromisePipe)
 
-#PromisePipe - reusable promise chains
+# PromisePipe - reusable promise chains
 
 [![Join the chat at https://gitter.im/edjafarov/PromisePipe](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/edjafarov/PromisePipe?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -34,7 +34,7 @@ check simple [todo app](https://github.com/edjafarov/PromisePipe/tree/master/exa
 
 and [todo with mongodb and session](https://github.com/edjafarov/PromisePipe/tree/master/example/mongotodo), live on heroku [https://promisepipe-todo.herokuapp.com/](https://promisepipe-todo.herokuapp.com/)
 
-##install
+## install
 
 npm install promise-pipe
 
@@ -79,11 +79,11 @@ newPipe(data, context).then(function(result){
 });
 ```
 
-#Core API
+# Core API
 
-##PromisePipe() : pipe
+## PromisePipe() : pipe
 
-###pipe : Promise
+### pipe : Promise
 Is a constructed pipe that returns a promise. First argument is a data, second is a context. While `data` behaves the same way as in Promises `context` is passing thorough whole chain of promises.
 
 ```javascript
@@ -104,7 +104,7 @@ pipe(2, {});
 //3 {foo:"bar"}
 //4 {foo:"bar", xyz:"baz"}
 ```
-###pipe.then
+### pipe.then
 `.then` adds a simple chain to the pipe
 ```javascript
 var pipe = PromisePipe()
@@ -114,7 +114,7 @@ var pipe = PromisePipe()
 .then(success)
 .catch(fail)
 ```
-###pipe.all
+### pipe.all
 As in Promises you can compose promise pipes
 ```javascript
 var pipe = PromisePipe()
@@ -133,10 +133,10 @@ var pipe = PromisePipe()
 )
 .then(fnEnd)
 ```
-###pipe.catch
+### pipe.catch
 The catch is catching error or reject of previous chains. Behaves as Promise catch.
 
-###pipe.join
+### pipe.join
 You can join PromisePipes if you like.
 
 ```javascript
@@ -157,7 +157,7 @@ var pipe2 = PromisePipe()
 pipe2(1) //4
 ```
 
-##PromisePipe.use(name, handler)
+## PromisePipe.use(name, handler)
 Allows to build your own customized DSL. `handler` is a function with at least 2 arguments data and context as in simple chain.
 
 ```javascript
@@ -193,10 +193,10 @@ action({foo:"baz", bar:"xyz"})
 // baz <- log('foo')
 ```
 
-##Transitions
+## Transitions
 When the PromisePipe is running on several environments and the execution comes to a chain marked to be executed on other environment PromisePipe tries to pass a message to that environment. To make it work you should describe how to pass the message between environments. Following methods are built for that.
 
-###PromisePipe.setEnv
+### PromisePipe.setEnv
 With `.setEnv` method you are setting environment for the PromisePipe. All methods marked same as the pipe will be executed only in this environment.
 ```
 if(typeof(window) !== 'object'){
@@ -206,7 +206,7 @@ if(typeof(window) !== 'object'){
 }
 ```
 
-###PromisePipe.in
+### PromisePipe.in
 Creates wrapper that marks chains as executable in specific environment.
 
 ```javascript
@@ -220,7 +220,7 @@ var addItemAction = PromisePipe()
 addItemAction(item) // will pass complete chain
 ```
 
-###PromisePipe.envTransition(from, to, handler)
+### PromisePipe.envTransition(from, to, handler)
 Setting transition of a message between environments. `from` and `to` are environments names. For example 'client' and 'server'. `handler` is a function that passes the message to other env.
 
 ```javascript
@@ -228,7 +228,7 @@ PromisePipe.envTransition('client', 'server', function(message){
   // here you need to put a logic that sends message to server env
 })
 ```
-###PromisePipe.execTransitionMessage(message)
+### PromisePipe.execTransitionMessage(message)
 The message created in `PromisePipe.envTransition` comes to another env and must be executed here. When the message is prepared you need to execute it on a PromisePipe. It will resolve what chains it need to execute and will return a Promise that you need to handle and return updated message back to client.
 
 ```javascript
@@ -247,7 +247,7 @@ function clientHandler(message){
 }
 ```
 
-###PromisePipe.localContext(context) : PromisePipeWithContext
+### PromisePipe.localContext(context) : PromisePipeWithContext
 With serverside you would probably need to have some isolated context like session that should not be accessible on client. You can extend the context for environment. [(Usage Eaxmple)](https://github.com/edjafarov/PromisePipe/blob/20661a4cc5ee14062bd9d4e4b106ff1b69ee8ebc/example/mongotodo/server.js#L39)
 
 #### PromisePipeWithContext.execTransitionMessage(message)
@@ -256,10 +256,10 @@ The message will be executed with access to additional context.
 #### PromisePipeWithContext.wrap(fn)
 The function will be executed with access to additional context.
 
-##Connectors
+## Connectors
 To make connecting different environments easier there is connectors API.
 
-###PromisePipe.stream(from, to, Handler).connector(Connector)
+### PromisePipe.stream(from, to, Handler).connector(Connector)
 This is setting up transitions to use Connector.
 
 Connector is an object that should implement two methods: `send` and `listen`
@@ -277,8 +277,8 @@ Connector is an object that should implement two methods: `send` and `listen`
 
 There are implemented connectors for [SocketIO](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/SocketIODuplexStream.js), [HTTP](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/HTTPDuplexStream.js), [SocketIO + sessions](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/SessionSocketIODuplexStream.js), [Webworkers](https://github.com/edjafarov/PromisePipe/blob/master/example/connectors/WorkerDuplexStream.js)
 
-##Debugging
-###PromisePipe.setMode
+## Debugging
+### PromisePipe.setMode
 To set up PromisePipe in debug mode you need to call PromisePipe.setMode('DEBUG'). Then in chrome you will be able to see in console values of arguments passed inside each chain within pipe:
 
 ![debuggability promisepipes](http://g.recordit.co/EywOLPXn7v.gif)

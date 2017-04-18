@@ -1,6 +1,6 @@
-#Classic TODO MVC app on PromisePipes with mongo as persistent storage 
+# Classic TODO MVC app on PromisePipes with mongo as persistent storage 
 
-##getting started
+## getting started
 
 ```
 npm install
