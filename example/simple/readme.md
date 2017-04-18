@@ -1,6 +1,6 @@
-#Simple PromisePipe example
+# Simple PromisePipe example
 
-##getting started
+## getting started
 
 ```
 npm install

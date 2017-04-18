@@ -1,6 +1,6 @@
-#Classic TODO MVC app on PromisePipes with PromisePipe based API and mongo as persistent storage 
+# Classic TODO MVC app on PromisePipes with PromisePipe based API and mongo as persistent storage 
 
-##getting started
+## getting started
 
 * start mongo locally `mongod`
 

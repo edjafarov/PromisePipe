@@ -1,8 +1,8 @@
-#Simple todo PromisePipe example
+# Simple todo PromisePipe example
 
 Part of logic that holds the todo data is on server. So this is client-server todo app.
 
-##getting started
+## getting started
 
 ```
 npm install
